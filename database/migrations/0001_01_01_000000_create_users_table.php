@@ -9,17 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
-        });
+public function up(): void
+{
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        // Agregamos la conexión obligatoria con la clínica
+        $table->foreignUuid('clinic_id')->nullable()->constrained('clinics')->cascadeOnDelete();        
+        $table->string('name');
+        $table->string('email')->unique();
+        $table->string('phone')->nullable(); // <-- Agregamos teléfono
+        $table->timestamp('email_verified_at')->nullable();
+        $table->string('password');
+        $table->rememberToken();
+        $table->timestamps();
+    });
+    // ... lo demás se queda igual
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
