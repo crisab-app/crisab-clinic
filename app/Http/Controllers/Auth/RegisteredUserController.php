@@ -78,4 +78,59 @@ class RegisteredUserController extends Controller
 
         return redirect(route('dashboard', absolute: false));
     }
+    // --- NUEVAS FUNCIONES PARA EL REGISTRO CON GOOGLE ---
+
+    // 1. Mostrar el formulario corto
+    public function createGoogle(): View|\Illuminate\Http\RedirectResponse
+    {
+        // Si alguien intenta entrar aquí sin venir de Google, lo pateamos al registro normal
+        if (!session()->has('google_email')) {
+            return redirect()->route('register');
+        }
+        return view('auth.register-google');
+    }
+
+    // 2. Guardar la clínica y al usuario de Google
+    public function storeGoogle(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'phone' => ['required', 'string', 'max:20'],
+            'clinic_name' => ['required', 'string', 'max:255'],
+            'country' => ['required', 'string', 'max:100'],
+            'timezone' => ['required', 'string', 'max:100'],
+        ]);
+
+        $user = DB::transaction(function () use ($request) {
+            
+            $clinic = Clinic::create([
+                'name' => $request->clinic_name,
+                'visual_id' => 'CLINIC-' . strtoupper(Str::random(6)),
+                'country' => $request->country,
+                'timezone' => $request->timezone,
+            ]);
+
+            $user = User::create([
+                'name' => session('google_name'),
+                'email' => session('google_email'),
+                'phone' => $request->phone,
+                // Como entra con Google, le generamos una contraseña larguísima y aleatoria que nunca usará
+                'password' => Hash::make(Str::random(24)), 
+                'clinic_id' => $clinic->id,
+                // ¡Magia! Como Google ya verificó que el correo es real, lo marcamos como verificado automáticamente
+                'email_verified_at' => now(), 
+            ]);
+
+            $user->assignRole('Administrador de Clinica');
+
+            return $user;
+        });
+     
+        // Borramos los datos temporales
+        session()->forget(['google_name', 'google_email']);
+
+        // Lo dejamos entrar
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
+    }
 }

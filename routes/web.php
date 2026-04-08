@@ -16,6 +16,13 @@ Route::view('/terminos', 'terminos')->name('terminos');
 // Rutas de Autenticación con Google
 Route::get('/auth/google/redirect', [ProviderController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [ProviderController::class, 'callback'])->name('google.callback');
+// Rutas de Autenticación con Google
+Route::get('/auth/google/redirect', [ProviderController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [ProviderController::class, 'callback'])->name('google.callback');
+
+// Rutas para completar registro con Google
+Route::get('/register/google', [App\Http\Controllers\Auth\RegisteredUserController::class, 'createGoogle'])->name('register.google');
+Route::post('/register/google', [App\Http\Controllers\Auth\RegisteredUserController::class, 'storeGoogle'])->name('register.google.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
