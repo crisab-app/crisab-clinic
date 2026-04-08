@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\ProviderController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClinicController;
@@ -11,6 +12,10 @@ Route::get('/', function () {
 // Rutas legales públicas
 Route::view('/privacidad', 'privacidad')->name('privacidad');
 Route::view('/terminos', 'terminos')->name('terminos');
+
+// Rutas de Autenticación con Google
+Route::get('/auth/google/redirect', [ProviderController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [ProviderController::class, 'callback'])->name('google.callback');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
