@@ -26,4 +26,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/clinics', [ClinicController::class, 'store'])->name('clinics.store');
 });
 
+// ==========================================
+// ZONA EXCLUSIVA PARA EL SUPERADMIN
+// ==========================================
+Route::middleware(['auth', 'verified', 'role:Superadmin'])->group(function () {
+    
+    // Rutas para gestionar a los usuarios maestros (Dueños de clínicas)
+    Route::resource('superadmin/users', App\Http\Controllers\SuperadminUserController::class)
+        ->names('superadmin.users')
+        ->except(['create', 'store', 'show']); // No ocupamos estas porque se registran solos por fuera
+        
+});
+
 require __DIR__.'/auth.php';
