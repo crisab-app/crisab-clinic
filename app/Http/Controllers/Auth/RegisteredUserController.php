@@ -31,7 +31,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         // 1. Validamos los 7 datos que le pedimos al cliente
         $request->validate([
@@ -70,17 +70,10 @@ public function store(Request $request): RedirectResponse
             return $user;
         });
      
-        // 1. DISPARAMOS EL EVENTO DE CORREO:
-        event(new \Illuminate\Auth\Events\Registered($user));
+        // 3. DISPARAMOS EL EVENTO DE CORREO:
+        event(new Registered($user)); // Usando la clase importada arriba
 
-        // 2. Iniciamos sesión y redirigimos
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
-    }
-        
-
-        // 3. Autenticamos al usuario recién creado y lo mandamos a su panel
+        // 4. Autenticamos al usuario recién creado y lo mandamos a su panel
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));
