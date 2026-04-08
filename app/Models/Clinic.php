@@ -18,4 +18,9 @@ protected $fillable = [
         'billing_plan',
         'phone'
     ];
+// Una clínica tiene muchos recursos físicos
+    public function resources()
+    {
+        return $this->hasMany(ClinicResource::class);
+    }
 }
