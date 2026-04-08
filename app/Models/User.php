@@ -32,8 +32,15 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+        // Saber a qué clínica pertenece este usuario
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    // Traer únicamente el registro de conexión más reciente
+    public function latestLogin()
+    {
+        return $this->hasOne(LoginLog::class)->latestOfMany();
     }
 }
