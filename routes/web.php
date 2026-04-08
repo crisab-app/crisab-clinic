@@ -8,6 +8,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Rutas legales públicas
+Route::view('/privacidad', 'privacidad')->name('privacidad');
+Route::view('/terminos', 'terminos')->name('terminos');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
