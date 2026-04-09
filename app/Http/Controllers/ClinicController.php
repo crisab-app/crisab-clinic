@@ -47,13 +47,23 @@ public function edit($id)
 }
 
 public function update(Request $request, $id)
-{
-    $request->validate(['name' => 'required|string|max:255']);
-    $clinic = Clinic::findOrFail($id);
-    $clinic->update($request->only('name'));
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'billing_plan' => 'required|string|in:TRIAL,BASIC,PRO,PREMIUM', // Valida que solo sean estos planes
+        ]);
 
-    return redirect()->route('clinics.index')->with('status', 'Clínica actualizada correctamente.');
-}
+        $clinic = \App\Models\Clinic::findOrFail($id);
+        
+        $clinic->update([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'billing_plan' => $request->billing_plan,
+        ]);
+
+        return redirect()->route('clinics.index')->with('status', 'Clínica actualizada correctamente.');
+    }
 
 public function destroy($id)
 {
