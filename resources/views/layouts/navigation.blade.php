@@ -18,6 +18,12 @@
                         {{ __('Recursos') }}
                     </x-nav-link>
                     @endrole
+
+                    @role('Superadmin')
+                    <x-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
+                        {{ __('Clínicas') }}
+                    </x-nav-link>
+                    @endrole
                 </div>
             </div>
 
