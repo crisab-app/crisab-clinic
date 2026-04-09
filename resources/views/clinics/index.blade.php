@@ -37,6 +37,7 @@
                                 <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">ID Visual</th>
                                 <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">Plan</th>
                                 <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">Fecha de Registro</th>
+                                <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,8 +45,14 @@
                                 <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                     <td class="py-3 text-gray-900 dark:text-gray-200">{{ $clinic->name }}</td>
                                     <td class="py-3 font-mono text-indigo-600 dark:text-indigo-400">{{ $clinic->visual_id }}</td>
-                                    <td class="py-3 uppercase text-xs font-bold text-gray-500 dark:text-gray-400">{{ $clinic->billing_plan }}</td>
+                                    <td class="py-3 uppercase text-xs font-bold text-gray-500 dark:text-gray-400">{{ $clinic->billing_plan ?? 'TRIAL' }}</td>
                                     <td class="py-3 text-gray-600 dark:text-gray-300">{{ $clinic->created_at->format('d/m/Y') }}</td>
+                                    
+                                    <td class="py-3 text-right">
+                                        <a href="{{ route('clinics.show', $clinic->id) }}" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 hover:underline">
+                                            Ver Detalles
+                                        </a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

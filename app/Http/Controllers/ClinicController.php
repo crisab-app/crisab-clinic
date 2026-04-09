@@ -32,4 +32,13 @@ class ClinicController extends Controller
 
         return redirect()->route('clinics.index')->with('status', 'Clínica creada con éxito.');
     }
+    // Busca esta función o agrégala si no la tienes
+    public function show($id)
+    {
+        // Buscamos la clínica por su ID
+        $clinic = \App\Models\Clinic::findOrFail($id);
+        
+        // Retornamos la vista que acabamos de crear, pasándole los datos
+        return view('clinics.show', compact('clinic'));
+    }
 }
