@@ -19,8 +19,16 @@ protected $fillable = [
         'phone'
     ];
 // Una clínica tiene muchos recursos físicos
-    public function resources()
-    {
-        return $this->hasMany(ClinicResource::class);
-    }
+public function users()
+{
+    return $this->hasMany(User::class);
+}
+
+// Para obtener específicamente al administrador (dueño)
+public function owner()
+{
+    return $this->hasOne(User::class)->whereHas('roles', function($q){
+        $q->where('name', 'Administrador de Clinica');
+    });
+}
 }
