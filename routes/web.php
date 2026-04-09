@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     // Módulo de Clínicas (Superadmin)
     Route::get('/clinics', [ClinicController::class, 'index'])->name('clinics.index');
     Route::post('/clinics', [ClinicController::class, 'store'])->name('clinics.store');
+    Route::get('/clinics/{id}', [App\Http\Controllers\ClinicController::class, 'show'])->name('clinics.show');
 
     // Rutas de Personal
     Route::get('/staff', [App\Http\Controllers\Clinic\StaffController::class, 'index'])->name('staff.index');
