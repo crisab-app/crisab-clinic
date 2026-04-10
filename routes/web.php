@@ -63,6 +63,9 @@ Route::middleware('auth')->group(function () {
     // Acciones para Especialidades
     Route::post('/catalogs/specialties', [App\Http\Controllers\CatalogController::class, 'storeSpecialty'])->name('specialties.store');
     Route::delete('/catalogs/specialties/{id}', [App\Http\Controllers\CatalogController::class, 'destroySpecialty'])->name('specialties.destroy');
+
+    // Módulo de Pacientes
+    Route::resource('patients', App\Http\Controllers\PatientController::class);
 });
 
 // ==========================================

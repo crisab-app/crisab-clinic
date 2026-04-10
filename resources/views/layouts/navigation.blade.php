@@ -13,6 +13,11 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
+                            {{ __('Pacientes') }}
+                    </x-nav-link>
+
+
                     @role('Administrador de Clinica')
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-dropdown align="right" width="48">
@@ -121,6 +126,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
+                {{ __('Pacientes') }}
+            </x-responsive-nav-link>
+
             
             @role('Administrador de Clinica')
             <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
@@ -143,6 +153,8 @@
                 </div>
             </div>
             @endrole
+
+
 
             @role('Superadmin')
             <x-responsive-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
