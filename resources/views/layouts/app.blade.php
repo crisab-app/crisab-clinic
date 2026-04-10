@@ -20,16 +20,14 @@
             }
         </script>
 
-        
-            <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
-            <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-05S2EBH8VY"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-                gtag('config', '{{ config('services.google.analytics_id') }}');
-            </script>
-        
+        gtag('config', 'G-05S2EBH8VY');
+    </script>
     </head>
 
     <body class="font-sans antialiased text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-900">
