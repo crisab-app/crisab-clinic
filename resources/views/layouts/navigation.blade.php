@@ -103,6 +103,9 @@
             <x-responsive-nav-link :href="route('clinic-resources.index')" :active="request()->routeIs('clinic-resources.*')">
                 {{ __('Recursos') }}
             </x-responsive-nav-link>
+            <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
+                {{ __('Personal') }}
+            </x-nav-link>
             @endrole
 
             @role('Superadmin')
