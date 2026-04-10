@@ -52,6 +52,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/staff/{id}/edit', [App\Http\Controllers\Clinic\StaffController::class, 'edit'])->name('staff.edit');
     Route::put('/staff/{id}', [App\Http\Controllers\Clinic\StaffController::class, 'update'])->name('staff.update');
     Route::delete('/staff/{id}', [App\Http\Controllers\Clinic\StaffController::class, 'destroy'])->name('staff.destroy');
+
+    // Centro de Catálogos (Configuración)
+    Route::get('/catalogs', [App\Http\Controllers\CatalogController::class, 'index'])->name('catalogs.index');
+    
+    // Acciones para Tipos de Recurso
+    Route::post('/catalogs/resource-types', [App\Http\Controllers\CatalogController::class, 'storeResourceType'])->name('resource-types.store');
+    Route::delete('/catalogs/resource-types/{id}', [App\Http\Controllers\CatalogController::class, 'destroyResourceType'])->name('resource-types.destroy');
+    
+    // Acciones para Especialidades
+    Route::post('/catalogs/specialties', [App\Http\Controllers\CatalogController::class, 'storeSpecialty'])->name('specialties.store');
+    Route::delete('/catalogs/specialties/{id}', [App\Http\Controllers\CatalogController::class, 'destroySpecialty'])->name('specialties.destroy');
 });
 
 // ==========================================
