@@ -54,4 +54,42 @@ class StaffController extends Controller
 
         return back()->with('status', 'Personal agregado correctamente.');
     }
+    public function edit($id)
+    {
+        // Buscamos al empleado, asegurándonos de que pertenezca a la misma clínica
+        $staffMember = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
+        $permissions = \Spatie\Permission\Models\Permission::whereIn('name', ['modulo_pacientes', 'modulo_agenda', 'modulo_facturacion', 'modulo_recursos'])->get();
+
+        return view('clinics.staff.edit', compact('staffMember', 'permissions'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $staffMember = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'permissions' => 'array'
+        ]);
+
+        // Actualizamos datos básicos
+        $staffMember->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        // Sincronizamos los permisos (si no mandó ninguno, pasamos un arreglo vacío)
+        $staffMember->syncPermissions($request->permissions ?? []);
+
+        return redirect()->route('staff.index')->with('status', 'Accesos del personal actualizados.');
+    }
+
+    public function destroy($id)
+    {
+        $staffMember = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
+        $staffMember->delete();
+
+        return redirect()->route('staff.index')->with('status', 'El empleado ha sido dado de baja del sistema.');
+    }
 }
