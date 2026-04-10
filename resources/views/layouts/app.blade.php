@@ -20,7 +20,7 @@
             }
         </script>
 
-        @if(app()->environment('production') && config('services.google.analytics_id'))
+        
             <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
@@ -29,7 +29,7 @@
 
                 gtag('config', '{{ config('services.google.analytics_id') }}');
             </script>
-        @endif
+        
     </head>
 
     <body class="font-sans antialiased text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-900">
