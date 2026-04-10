@@ -25,8 +25,8 @@ class StaffController extends Controller
             'modulo_facturacion', 
             'modulo_recursos'
         ])->get();
-
-        return view('clinic.staff.index', compact('staff', 'permissions'));
+// CORRECCIÓN AQUÍ: Asegúrate de que diga 'clinics' con S
+        return view('clinics.staff.index', compact('staff', 'permissions'));        
     }
 
     public function store(Request $request)
