@@ -8,12 +8,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ClinicResourceController extends Controller
 {
-    public function index()
+public function index()
     {
-        // 1. Obtenemos solo los recursos de la clínica del usuario actual
-        $resources = ClinicResource::where('clinic_id', Auth::user()->clinic_id)->get();
-        
-        return view('resources.index', compact('resources'));
+        // 1. Obtenemos los recursos físicos que ya están registrados
+        $resources = \App\Models\ClinicResource::where('clinic_id', auth()->user()->clinic_id)->get();
+
+        // 2. Obtenemos los Tipos de Recurso (El catálogo dinámico que acabamos de crear)
+        $resourceTypes = \App\Models\ResourceType::where('clinic_id', auth()->user()->clinic_id)->get();
+
+        // 3. Mandamos AMBAS variables a la vista
+        return view('resources.index', compact('resources', 'resourceTypes'));
     }
 
     public function store(Request $request)
