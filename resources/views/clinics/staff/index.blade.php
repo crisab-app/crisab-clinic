@@ -31,6 +31,16 @@
                             <x-input-label for="email" :value="__('Correo Electrónico')" />
                             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />
                         </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <x-input-label for="rfc" :value="__('RFC (Opcional)')" />
+                                <x-text-input id="rfc" name="rfc" type="text" class="mt-1 block w-full uppercase" placeholder="ABCD800101XYZ" />
+                            </div>
+                            <div>
+                                <x-input-label for="curp" :value="__('CURP (Opcional)')" />
+                                <x-text-input id="curp" name="curp" type="text" class="mt-1 block w-full uppercase" placeholder="ABCD800101HDFXXXX1" />
+                            </div>
+                        </div>
 
                         <div class="mb-4">
                             <x-input-label for="member_type" :value="__('Rol en la Clínica')" />
@@ -145,12 +155,13 @@
         </div>
     </div>
 
-    <script>
+<script>
         function toggleMedicalFields() {
             const type = document.getElementById('member_type').value;
             const medicalFields = document.getElementById('medical_fields');
             
-            if (type === 'medico') {
+            // Ahora mostramos los campos médicos tanto para Médico como para Enfermería
+            if (type === 'medico' || type === 'enfermeria') {
                 medicalFields.classList.remove('hidden');
             } else {
                 medicalFields.classList.add('hidden');

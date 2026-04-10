@@ -15,6 +15,8 @@ use App\Models\Traits\Tenantable; // <-- Importamos nuestro filtro global
 #[Fillable(['name', 
             'email', 
             'password', 
+            'rfc', 
+            'curp',
             'phone',
             'clinic_id',
             'member_type',     // NUEVO

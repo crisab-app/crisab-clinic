@@ -31,6 +31,8 @@ $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'member_type' => 'required|string',
+            'rfc' => 'nullable|string|max:13',
+            'curp' => 'nullable|string|max:18',
             'professional_id' => 'nullable|string|max:50',
             'specialty' => 'nullable|string|max:255',
             'permissions' => 'array'
@@ -42,6 +44,8 @@ $request->validate([
             'password' => bcrypt('password123'), // Contraseña temporal por defecto
             'clinic_id' => auth()->user()->clinic_id,
             'member_type' => $request->member_type,
+            'rfc' => $request->rfc,
+            'curp' => $request->curp,
             'professional_id' => $request->professional_id,
             'specialty' => $request->specialty,
         ]);
@@ -71,6 +75,8 @@ $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'member_type' => 'required|string',
+            'rfc' => 'nullable|string|max:13',
+            'curp' => 'nullable|string|max:18',
             'professional_id' => 'nullable|string|max:50',
             'specialty' => 'nullable|string|max:255',
             'permissions' => 'array'
@@ -80,6 +86,8 @@ $request->validate([
             'name' => $request->name,
             'email' => $request->email,
             'member_type' => $request->member_type,
+            'rfc' => $request->rfc,
+            'curp' => $request->curp,
             'professional_id' => $request->professional_id,
             'specialty' => $request->specialty,
         ]);

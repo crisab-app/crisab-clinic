@@ -39,13 +39,14 @@ class CatalogController extends Controller
     }
 
     // --- MÉTODOS PARA ESPECIALIDADES ---
-    public function storeSpecialty(Request $request)
+public function storeSpecialty(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
         
         Specialty::create([
             'clinic_id' => auth()->user()->clinic_id,
-            'name' => $request->name
+            'name' => $request->name,
+            'requires_cedula' => $request->has('requires_cedula') // Si marcaron la casilla, guarda true
         ]);
         
         return back()->with('success', 'Especialidad agregada correctamente.');

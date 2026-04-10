@@ -51,12 +51,17 @@
                         <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Especialidades</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ej: Pediatría, Odontología, Cosmetología, Fisioterapia.</p>
                         
-                        <form action="{{ route('specialties.store') }}" method="POST" class="flex gap-2">
+                        <form action="{{ route('specialties.store') }}" method="POST" class="flex flex-col gap-3">
                             @csrf
-                            <x-text-input name="name" type="text" class="block w-full" placeholder="Nueva especialidad..." required />
-                            <x-primary-button>Agregar</x-primary-button>
-                        </form>
-                    </div>
+                            <x-text-input name="name" type="text" class="block w-full" placeholder="Ej. Enfermería General, Pediatría..." required />
+                            
+                            <label class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <input type="checkbox" name="requires_cedula" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 mr-2">
+                                Esta especialidad/rol requiere Cédula Profesional
+                            </label>
+                            
+                            <x-primary-button class="w-fit">Agregar</x-primary-button>
+                        </form>                    </div>
                     
                     <div class="p-0">
                         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
