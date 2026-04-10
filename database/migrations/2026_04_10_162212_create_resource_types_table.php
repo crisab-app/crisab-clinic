@@ -6,21 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('resource_types', function (Blueprint $table) {
             $table->id();
+            // Vinculamos el tipo de recurso con la clínica específica (Soporte para UUID)
+            $table->foreignUuid('clinic_id')->constrained('clinics')->cascadeOnDelete();
+            $table->string('name'); // Ej: "Cabina de Masaje", "Quirófano"
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('resource_types');
     }
