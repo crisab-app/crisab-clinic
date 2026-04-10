@@ -22,17 +22,27 @@
                     <form action="{{ route('staff.store') }}" method="POST">
                         @csrf
                         
-<div class="mb-4">
+                        <div class="mb-4">
+                            <x-input-label for="name" :value="__('Nombre Completo')" />
+                            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" required autofocus />
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="email" :value="__('Correo Electrónico')" />
+                            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />
+                        </div>
+
+                        <div class="mb-4">
                             <x-input-label for="member_type" :value="__('Rol en la Clínica')" />
-                            <select id="member_type" name="member_type" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required onchange="toggleMedicalFields()">
+                            <select id="member_type" name="member_type" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-colors" required onchange="toggleMedicalFields()">
                                 <option value="staff">Personal Administrativo (Recepcionista, etc.)</option>
                                 <option value="medico">Médico / Especialista</option>
                                 <option value="enfermeria">Enfermería</option>
                             </select>
                         </div>
 
-                        <div id="medical_fields" class="hidden mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                            <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300 mb-3 uppercase">Datos para Recetas Médicas</h4>
+                        <div id="medical_fields" class="hidden mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-md">
+                            <h4 class="text-xs font-bold text-indigo-800 dark:text-indigo-300 mb-3 uppercase">Datos para Recetas Médicas</h4>
                             
                             <div class="mb-3">
                                 <x-input-label for="professional_id" :value="__('Cédula Profesional')" />
@@ -40,29 +50,17 @@
                             </div>
                             
                             <div>
-                                <x-input-label for="specialty" :value="__('Especialidad (Opcional)')" />
-                                <x-text-input id="specialty" name="specialty" type="text" class="mt-1 block w-full" placeholder="Ej. Pediatría" />
+                                <div class="flex justify-between items-center">
+                                    <x-input-label for="specialty" :value="__('Especialidad (Opcional)')" />
+                                    <a href="{{ route('catalogs.index') }}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">+ Configurar</a>
+                                </div>
+                                <select id="specialty" name="specialty" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm transition-colors">
+                                    <option value="">-- Seleccionar Especialidad --</option>
+                                    @foreach($specialties as $specialty)
+                                        <option value="{{ $specialty->name }}">{{ $specialty->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                        </div>
-
-                        <script>
-                            function toggleMedicalFields() {
-                                const type = document.getElementById('member_type').value;
-                                const medicalFields = document.getElementById('medical_fields');
-                                
-                                if (type === 'medico') {
-                                    medicalFields.classList.remove('hidden');
-                                } else {
-                                    medicalFields.classList.add('hidden');
-                                    // Limpiamos los campos si eligen otro rol para no guardar basura en la BD
-                                    document.getElementById('professional_id').value = '';
-                                    document.getElementById('specialty').value = '';
-                                }
-                            }
-                        </script>
-                        <div class="mb-6">
-                            <x-input-label for="email" :value="__('Correo Electrónico')" />
-                            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />
                         </div>
 
                         <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -95,7 +93,7 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">Nombre</th>
+                                    <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">Miembro</th>
                                     <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold">Accesos</th>
                                     <th class="py-2 text-gray-600 dark:text-gray-400 font-semibold text-right">Acciones</th>
                                 </tr>
@@ -103,15 +101,22 @@
                             <tbody>
                                 @forelse ($staff as $member)
                                     <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <td class="py-3">
+                                        <td class="py-3 pr-4">
                                             <div class="text-gray-900 dark:text-gray-200 font-medium">{{ $member->name }}</div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">{{ $member->email }}</div>
+                                            
+                                            <div class="mt-1">
+                                                <span class="text-[10px] uppercase font-bold text-indigo-500">{{ $member->member_type }}</span>
+                                                @if($member->specialty)
+                                                    <span class="text-[10px] text-gray-400"> | {{ $member->specialty }}</span>
+                                                @endif
+                                            </div>
                                         </td>
                                         
                                         <td class="py-3">
                                             <div class="flex flex-wrap gap-1">
                                                 @foreach($member->permissions as $perm)
-                                                    <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                                    <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
                                                         {{ str_replace('modulo_', '', $perm->name) }}
                                                     </span>
                                                 @endforeach
@@ -126,7 +131,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                                        <td colspan="3" class="py-8 text-center text-gray-500 dark:text-gray-400">
                                             Aún no has agregado a nadie a tu equipo.
                                         </td>
                                     </tr>
@@ -139,4 +144,19 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleMedicalFields() {
+            const type = document.getElementById('member_type').value;
+            const medicalFields = document.getElementById('medical_fields');
+            
+            if (type === 'medico') {
+                medicalFields.classList.remove('hidden');
+            } else {
+                medicalFields.classList.add('hidden');
+                document.getElementById('professional_id').value = '';
+                document.getElementById('specialty').value = '';
+            }
+        }
+    </script>
 </x-app-layout>

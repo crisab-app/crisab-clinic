@@ -11,22 +11,18 @@ use Spatie\Permission\Models\Permission;
 
 class StaffController extends Controller
 {
-    public function index()
+public function index()
     {
-        // Obtenemos solo a los empleados de la clínica del usuario actual
-        $staff = User::where('clinic_id', auth()->user()->clinic_id)
-                     ->where('id', '!=', auth()->id()) // Excluimos al dueño de esta lista
-                     ->get();
+        $staff = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)
+                                 ->where('id', '!=', auth()->id())
+                                 ->get();
+                                 
+        $permissions = \Spatie\Permission\Models\Permission::whereIn('name', ['modulo_pacientes', 'modulo_agenda', 'modulo_facturacion', 'modulo_recursos'])->get();
 
-        // Módulos/Permisos disponibles (Ajusta estos nombres según tu base de datos)
-        $permissions = Permission::whereIn('name', [
-            'modulo_pacientes', 
-            'modulo_agenda', 
-            'modulo_facturacion', 
-            'modulo_recursos'
-        ])->get();
-// CORRECCIÓN AQUÍ: Asegúrate de que diga 'clinics' con S
-        return view('clinics.staff.index', compact('staff', 'permissions'));        
+        // Buscamos el catálogo de especialidades de esta clínica
+        $specialties = \App\Models\Specialty::where('clinic_id', auth()->user()->clinic_id)->get();
+
+        return view('clinics.staff.index', compact('staff', 'permissions', 'specialties'));
     }
 
     public function store(Request $request)
