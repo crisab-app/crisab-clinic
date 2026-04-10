@@ -34,12 +34,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    
+    // UNIFICAMOS TODO LO DE GOOGLE AQUÍ:
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
-    ],
-    'google' => [
         'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
     ],
 ];
