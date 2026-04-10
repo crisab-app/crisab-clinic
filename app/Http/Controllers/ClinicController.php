@@ -15,25 +15,22 @@ class ClinicController extends Controller
         return view('clinics.index', compact('clinics'));
     }
 
-public function store(Request $request)
+    public function store(Request $request)
     {
-        // 1. Validamos que nos manden el nombre
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        // 2. Creamos la clínica con valores por defecto para que MySQL no se queje
-        \App\Models\Clinic::create([
+        // Generamos un ID visual único e identificable (Ej: CLINIC-4F8A2B)
+        $visualId = 'CLINIC-' . strtoupper(Str::random(6));
+
+        Clinic::create([
             'name' => $request->name,
-            'visual_id' => 'CLINIC-' . strtoupper(\Illuminate\Support\Str::random(6)),
-            'billing_plan' => 'TRIAL', // Plan por defecto
-            'country' => 'México',     // Valor por defecto para evitar el error 1364
-            'timezone' => 'America/Cancun', // Zona horaria por defecto
-            'phone' => null,           // El teléfono se queda nulo hasta que lo editen
+            'visual_id' => $visualId,
+            'billing_plan' => 'pro',
         ]);
 
-        // 3. Redirigimos de vuelta a la lista
-        return redirect()->route('clinics.index')->with('status', 'Clínica registrada correctamente.');
+        return redirect()->route('clinics.index')->with('status', 'Clínica creada con éxito.');
     }
     // Busca esta función o agrégala si no la tienes
 public function show($id)
