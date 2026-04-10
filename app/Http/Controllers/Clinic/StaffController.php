@@ -31,20 +31,24 @@ class StaffController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+$request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|string|email|max:255|unique:users',
+            'member_type' => 'required|string',
+            'professional_id' => 'nullable|string|max:50',
+            'specialty' => 'nullable|string|max:255',
             'permissions' => 'array'
         ]);
 
-        // Creamos al nuevo miembro del personal
-        $user = User::create([
+        $user = \App\Models\User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make(Str::random(12)), // Contraseña temporal
+            'password' => bcrypt('password123'), // Contraseña temporal por defecto
             'clinic_id' => auth()->user()->clinic_id,
+            'member_type' => $request->member_type,
+            'professional_id' => $request->professional_id,
+            'specialty' => $request->specialty,
         ]);
-
         // Le asignamos los permisos seleccionados
         if ($request->has('permissions')) {
             $user->givePermissionTo($request->permissions);
@@ -67,18 +71,22 @@ class StaffController extends Controller
     {
         $staffMember = \App\Models\User::where('clinic_id', auth()->user()->clinic_id)->findOrFail($id);
 
-        $request->validate([
+$request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'member_type' => 'required|string',
+            'professional_id' => 'nullable|string|max:50',
+            'specialty' => 'nullable|string|max:255',
             'permissions' => 'array'
         ]);
 
-        // Actualizamos datos básicos
         $staffMember->update([
             'name' => $request->name,
             'email' => $request->email,
+            'member_type' => $request->member_type,
+            'professional_id' => $request->professional_id,
+            'specialty' => $request->specialty,
         ]);
-
         // Sincronizamos los permisos (si no mandó ninguno, pasamos un arreglo vacío)
         $staffMember->syncPermissions($request->permissions ?? []);
 

@@ -22,11 +22,44 @@
                     <form action="{{ route('staff.store') }}" method="POST">
                         @csrf
                         
-                        <div class="mb-4">
-                            <x-input-label for="name" :value="__('Nombre Completo')" />
-                            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" required autofocus />
+<div class="mb-4">
+                            <x-input-label for="member_type" :value="__('Rol en la Clínica')" />
+                            <select id="member_type" name="member_type" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required onchange="toggleMedicalFields()">
+                                <option value="staff">Personal Administrativo (Recepcionista, etc.)</option>
+                                <option value="medico">Médico / Especialista</option>
+                                <option value="enfermeria">Enfermería</option>
+                            </select>
                         </div>
 
+                        <div id="medical_fields" class="hidden mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                            <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300 mb-3 uppercase">Datos para Recetas Médicas</h4>
+                            
+                            <div class="mb-3">
+                                <x-input-label for="professional_id" :value="__('Cédula Profesional')" />
+                                <x-text-input id="professional_id" name="professional_id" type="text" class="mt-1 block w-full" placeholder="Ej. 12345678" />
+                            </div>
+                            
+                            <div>
+                                <x-input-label for="specialty" :value="__('Especialidad (Opcional)')" />
+                                <x-text-input id="specialty" name="specialty" type="text" class="mt-1 block w-full" placeholder="Ej. Pediatría" />
+                            </div>
+                        </div>
+
+                        <script>
+                            function toggleMedicalFields() {
+                                const type = document.getElementById('member_type').value;
+                                const medicalFields = document.getElementById('medical_fields');
+                                
+                                if (type === 'medico') {
+                                    medicalFields.classList.remove('hidden');
+                                } else {
+                                    medicalFields.classList.add('hidden');
+                                    // Limpiamos los campos si eligen otro rol para no guardar basura en la BD
+                                    document.getElementById('professional_id').value = '';
+                                    document.getElementById('specialty').value = '';
+                                }
+                            }
+                        </script>
                         <div class="mb-6">
                             <x-input-label for="email" :value="__('Correo Electrónico')" />
                             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" required />

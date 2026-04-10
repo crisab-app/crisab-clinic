@@ -12,7 +12,14 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Traits\Tenantable; // <-- Importamos nuestro filtro global
 
-#[Fillable(['name', 'email', 'password', 'phone','clinic_id'])] // <-- Aquí permitimos que se guarde el clinic_id
+#[Fillable(['name', 
+            'email', 
+            'password', 
+            'phone',
+            'clinic_id',
+            'member_type',     // NUEVO
+            'professional_id', // NUEVO
+            'specialty'       ])]   // 
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
