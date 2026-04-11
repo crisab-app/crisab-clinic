@@ -13,14 +13,17 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('appointments.index')">Agenda</x-nav-link>
-                    <x-nav-link :href="route('reception.index')">Recepción</x-nav-link>
+                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')">
+                        {{ __('Agenda') }}
+                    </x-nav-link>
+                    
+                    <x-nav-link :href="route('reception.index')" :active="request()->routeIs('reception.*')">
+                        {{ __('Recepción') }}
                     </x-nav-link>
 
                     <x-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
-                            {{ __('Pacientes') }}
+                        {{ __('Pacientes') }}
                     </x-nav-link>
-
 
                     @role('Administrador de Clinica')
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -60,7 +63,6 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                
                 <button x-data="{ isDark: document.documentElement.classList.contains('dark') }" 
                         x-on:click="
                             isDark = !isDark; 
@@ -103,7 +105,6 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
@@ -130,16 +131,19 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('appointments.index')">
-                Agenda
+            
+            <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')">
+                {{ __('Agenda') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('reception.index')">Recepción</x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('reception.index')" :active="request()->routeIs('reception.*')">
+                {{ __('Recepción') }}
+            </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
                 {{ __('Pacientes') }}
             </x-responsive-nav-link>
 
-            
             @role('Administrador de Clinica')
             <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
                 <div class="px-4 mb-2">
@@ -162,8 +166,6 @@
             </div>
             @endrole
 
-
-
             @role('Superadmin')
             <x-responsive-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
                 {{ __('Clínicas') }}
@@ -184,7 +186,6 @@
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
