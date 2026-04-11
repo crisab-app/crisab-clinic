@@ -19,10 +19,11 @@ protected $fillable = [
         'phone'
     ];
 // Una clínica tiene muchos recursos físicos
-public function users()
-{
-    return $this->hasMany(User::class);
-}
+// Relación: Una clínica atiende a muchos pacientes
+    public function patients()
+    {
+        return $this->belongsToMany(Patient::class);
+    }
 
 // Para obtener específicamente al administrador (dueño)
 public function owner()

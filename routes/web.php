@@ -66,6 +66,9 @@ Route::middleware('auth')->group(function () {
 
     // Módulo de Pacientes
     Route::resource('patients', App\Http\Controllers\PatientController::class);
+
+    // Módulo de Agenda
+    Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
 });
 
 // ==========================================
