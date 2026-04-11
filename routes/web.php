@@ -69,6 +69,8 @@ Route::middleware('auth')->group(function () {
 
     // Módulo de Agenda
     Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
+    // Módulo de Recepción (Dashboard)
+    Route::get('reception', [App\Http\Controllers\ReceptionController::class, 'index'])->name('reception.index');
 });
 
 // ==========================================

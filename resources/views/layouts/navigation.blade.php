@@ -14,6 +14,8 @@
                     </x-nav-link>
 
                     <x-nav-link :href="route('appointments.index')">Agenda</x-nav-link>
+                    <x-nav-link :href="route('reception.index')">Recepción</x-nav-link>
+                    </x-nav-link>
 
                     <x-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
                             {{ __('Pacientes') }}
@@ -131,6 +133,7 @@
             <x-responsive-nav-link :href="route('appointments.index')">
                 Agenda
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reception.index')">Recepción</x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
                 {{ __('Pacientes') }}
