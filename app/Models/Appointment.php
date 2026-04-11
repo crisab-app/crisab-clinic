@@ -1,48 +1,58 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Models;
 
-use App\Models\Appointment;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class AppointmentController extends Controller
+class Appointment extends Model
 {
-    public function index(Request $request)
+    use HasFactory;
+
+    protected $fillable = [
+        'clinic_id',
+        'patient_id',
+        'user_id',
+        'resource_id',
+        'start_time',
+        'end_time',
+        'status',
+        'reason'
+    ];
+
+    // Relación: La cita le pertenece a un Paciente
+    public function patient()
     {
-        $clinicId = auth()->user()->clinic_id;
-        
-        // 1. Definimos qué día estamos viendo (Por defecto, hoy)
-        $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
-
-        // 2. Traemos a todos los MÉDICOS de la clínica para hacer las columnas
-        $doctors = User::where('clinic_id', $clinicId)
-                       ->where('member_type', 'medico')
-                       ->get();
-
-        // 3. Traemos las CITAS de ese día, incluyendo datos del paciente
-        $appointments = Appointment::with(['patient', 'user'])
-                                   ->where('clinic_id', $clinicId)
-                                   ->whereDate('start_time', $date)
-                                   ->get();
-
-        // 4. Generamos los bloques de horas (Ej: de 8:00 AM a 8:00 PM)
-        $hours = [];
-        for ($i = 8; $i <= 20; $i++) {
-            $hours[] = sprintf('%02d:00', $i);
-        }
-
-        return view('appointments.index', compact('date', 'doctors', 'appointments', 'hours'));
+        return $this->belongsTo(Patient::class);
     }
 
-    public function create()
+    // Relación: La cita le pertenece a un Médico (User)
+    public function user()
     {
-        // Aquí construiremos el formulario para agendar más adelante
+        return $this->belongsTo(User::class);
     }
 
-    public function store(Request $request)
+    // Relación: La cita ocupa un Recurso Físico (Consultorio)
+    // Nota: Asumiendo que tu modelo de recursos se llama ClinicResource
+    public function resource()
     {
-        // Aquí guardaremos la cita más adelante
+        return $this->belongsTo(ClinicResource::class, 'resource_id');
+    }
+
+    // Función para detectar si el médico o el consultorio ya están ocupados
+    public static function isSlotAvailable($resourceId, $userId, $start, $end)
+    {
+        return !self::where(function ($query) use ($resourceId, $userId, $start, $end) {
+            // Buscamos si ESTE consultorio o ESTE médico...
+            $query->where(function ($q) use ($resourceId, $userId) {
+                $q->where('resource_id', $resourceId)
+                  ->orWhere('user_id', $userId);
+            })
+            // ...tienen un cruce en ESTE rango de horas
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('start_time', [$start, $end])
+                  ->orWhereBetween('end_time', [$start, $end]);
+            });
+        })->exists();
     }
 }
