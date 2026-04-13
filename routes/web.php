@@ -13,9 +13,12 @@ Route::get('/', function () {
 Route::view('/privacidad', 'privacidad')->name('privacidad');
 Route::view('/terminos', 'terminos')->name('terminos');
 
-// Rutas de Autenticación con Google
-Route::get('/auth/google/redirect', [ProviderController::class, 'redirect'])->name('google.redirect');
-Route::get('/auth/google/callback', [ProviderController::class, 'callback'])->name('google.callback');
+// ==========================================
+// ENLACES MÁGICOS (PORTAL PÚBLICO DE PACIENTES)
+// ==========================================
+Route::get('/bienvenido/{token}', [App\Http\Controllers\OnboardingController::class, 'show'])->name('onboarding.show');
+Route::post('/bienvenido/{token}', [App\Http\Controllers\OnboardingController::class, 'store'])->name('onboarding.store');
+
 // Rutas de Autenticación con Google
 Route::get('/auth/google/redirect', [ProviderController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [ProviderController::class, 'callback'])->name('google.callback');
