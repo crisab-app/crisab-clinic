@@ -38,7 +38,8 @@ class AppointmentController extends Controller
 
     public function create()
     {
-        // Aquí construiremos el formulario para agendar más adelante
+        // Redirigimos al Centro de Mando
+        return redirect()->route('reception.index');
     }
 
     public function store(Request $request)
