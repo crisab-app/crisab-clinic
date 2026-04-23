@@ -74,6 +74,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
     // Módulo de Recepción (Dashboard)
     Route::get('reception', [App\Http\Controllers\ReceptionController::class, 'index'])->name('reception.index');
+
+    // Generador de Enlaces Mágicos por WhatsApp
+    Route::get('whatsapp/onboarding/{patient}', [App\Http\Controllers\ReceptionController::class, 'sendWhatsapp'])->name('reception.whatsapp');
 });
 
 // ==========================================
