@@ -10,24 +10,23 @@ use Illuminate\Http\Request;
 class AppointmentController extends Controller
 {
 public function index(Request $request)
-{
-    // 1. Obtener la fecha seleccionada o usar 'Hoy' por defecto
-    $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
-    
-    // 2. Obtener las citas del doctor logueado para esa fecha
-    // (Si es Administrador, podrías quitar el filtro de user_id para que vea todas)
-    $appointments = auth()->user()->clinic->appointments()
-        ->whereDate('start_time', $date)
-        ->when(auth()->user()->member_type === 'medico', function($query) {
-            return $query->where('user_id', auth()->id());
-        })
-        ->with('patient')
-        ->orderBy('start_time')
-        ->get();
+    {
+        // 1. Obtener la fecha seleccionada o usar 'Hoy' por defecto
+        $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
+        
+        // 2. Obtener las citas del doctor logueado para esa fecha
+        $appointments = auth()->user()->clinic->appointments()
+            ->whereDate('start_time', $date)
+            ->when(auth()->user()->member_type === 'medico', function($query) {
+                // Si es doctor, solo ve sus propias citas
+                return $query->where('user_id', auth()->id());
+            })
+            ->with('patient')
+            ->orderBy('start_time')
+            ->get();
 
-    return view('appointments.index', compact('appointments', 'date'));
-}
-
+        return view('appointments.index', compact('appointments', 'date'));
+    }
     public function create()
     {
         // Redirigimos al Centro de Mando
