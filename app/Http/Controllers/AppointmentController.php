@@ -42,8 +42,28 @@ class AppointmentController extends Controller
         return redirect()->route('reception.index');
     }
 
-    public function store(Request $request)
+public function store(Request $request)
     {
-        // Aquí guardaremos la cita más adelante
-    }
-}
+        // 1. Validamos que no nos manden datos basura
+        $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'user_id' => 'required|exists:users,id',
+            'resource_id' => 'required|exists:clinic_resources,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time', // El fin debe ser después del inicio
+        ]);
+
+        // 2. Guardamos la cita conectada a la clínica actual
+        \App\Models\Appointment::create([
+            'clinic_id' => auth()->user()->clinic_id,
+            'patient_id' => $request->patient_id,
+            'user_id' => $request->user_id,
+            'resource_id' => $request->resource_id,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'status' => 'Programada', // Estado inicial por defecto
+        ]);
+
+        // 3. ¡La pieza faltante! Redirigimos de vuelta a Recepción con un mensaje verde
+        return redirect()->route('reception.index')->with('success', '¡Cita agendada exitosamente!');
+    }}
