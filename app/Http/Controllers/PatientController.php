@@ -24,7 +24,14 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
-        // Agregamos las reglas de validación para los datos fiscales
+        // 1. Limpieza inicial. Aquí convertimos a mayúsculas o a NULL de forma definitiva.
+        $request->merge([
+            'curp' => $request->filled('curp') ? strtoupper($request->curp) : null,
+            'rfc'  => $request->filled('rfc')  ? strtoupper($request->rfc)  : null,
+            'email' => $request->filled('email') ? strtolower($request->email) : null,
+        ]);
+
+        // 2. Validación (Incluyendo los nuevos contactos de emergencia)
         $request->validate([
             'name' => 'required|string|max:255',
             'curp' => 'nullable|string|max:18',
@@ -37,73 +44,73 @@ class PatientController extends Controller
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|string|max:20',
             'blood_type' => 'nullable|string|max:10',
-            'allergies' => 'nullable|string'
+            'allergies' => 'nullable|string',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_phone' => 'nullable|string|max:20',
         ]);
 
         $clinic = auth()->user()->clinic;
 
-        // CAMBIO CLAVE 2: Flujo de Intercepción (Corregido)
-        // Eliminamos el 'if ($request->curp)' sobrante. Ahora el query evalúa todo de golpe.
-        $existingPatient = Patient::query()
-            ->when($request->rfc, fn($q) => $q->where('rfc', strtoupper($request->rfc)))
-            ->orWhere(fn($q) => $q->when($request->curp, fn($q2) => $q2->where('curp', strtoupper($request->curp))))
-            ->orWhere(fn($q) => $q->when($request->email, fn($q2) => $q2->where('email', strtolower($request->email))))
-            ->first();
+        // 3. Búsqueda en la Red Global (Lógica Optimizada)
+        $existingPatient = null;
+        
+        // Solo buscamos si al menos uno de los tres datos clave viene lleno
+        if ($request->filled('rfc') || $request->filled('curp') || $request->filled('email')) {
+            $existingPatient = Patient::query()
+                ->where(function ($q) use ($request) {
+                    if ($request->filled('rfc')) $q->orWhere('rfc', $request->rfc);
+                    if ($request->filled('curp')) $q->orWhere('curp', $request->curp);
+                    if ($request->filled('email')) $q->orWhere('email', $request->email);
+                })
+                ->first();
+        }
 
         if ($existingPatient) {
             auth()->user()->clinic->patients()->syncWithoutDetaching([$existingPatient->id]);
-            return redirect()->route('patients.index')->with('success', 'Cliente/Paciente detectado por RFC/CURP/Correo en la Red Global y vinculado exitosamente.');
+            return redirect()->route('patients.index')->with('success', 'Cliente/Paciente detectado en la Red Global y vinculado exitosamente.');
         }
 
-        // EL PACIENTE/EMPRESA ES NUEVO: Lo creamos globalmente con sus datos fiscales
+        // 4. Creación del Paciente
+        // CORRECCIÓN CLAVE: Usamos $request->curp directamente porque ya viene procesado del "merge"
         $newPatient = Patient::create([
             'name' => $request->name,
-            'curp' => strtoupper($request->curp),
-            'rfc' => strtoupper($request->rfc),
+            'curp' => $request->curp, // <-- Ya no usamos strtoupper() aquí
+            'rfc' => $request->rfc,   // <-- Ya no usamos strtoupper() aquí
             'tax_name' => $request->tax_name,
             'tax_zip_code' => $request->tax_zip_code,
             'tax_regime' => $request->tax_regime,
-            'email' => strtolower($request->email),
+            'email' => $request->email, // <-- Ya no usamos strtolower() aquí
             'phone' => $request->phone,
             'date_of_birth' => $request->date_of_birth,
             'gender' => $request->gender,
             'blood_type' => $request->blood_type,
             'allergies' => $request->allergies,
+            'emergency_contact_name' => $request->emergency_contact_name,
+            'emergency_contact_phone' => $request->emergency_contact_phone,
         ]);
 
-        // Lo vinculamos a nuestra clínica usando la tabla intermedia (clinic_patient)
+        // Lo vinculamos a nuestra clínica
         $clinic->patients()->attach($newPatient->id);
 
-        return redirect()->route('patients.index')->with('success', 'Expediente global creado y vinculado con éxito.');
+        return redirect()->route('patients.index')->with('success', 'Expediente creado y vinculado con éxito.');
     }
 
     public function destroy(Patient $patient)
     {
-        // Solo rompemos el vínculo (detach) entre la clínica actual y el paciente.
         auth()->user()->clinic->patients()->detach($patient->id);
-
         return back()->with('success', 'Paciente removido de tu lista de la clínica.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Patient $patient)
     {
-        // Lo usaremos más adelante para ver el expediente completo
+        // Lo usaremos para ver el expediente completo
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Patient $patient)
     {
-        //
+        // 
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Patient $patient)
     {
         //
