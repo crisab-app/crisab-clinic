@@ -32,4 +32,11 @@ public function owner()
         $q->where('name', 'Administrador de Clinica');
     });
 }
+/**
+     * Obtener todas las citas de esta clínica.
+     */
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }
