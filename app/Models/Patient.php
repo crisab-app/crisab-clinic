@@ -21,4 +21,8 @@ protected $fillable = [
     {
         return $this->belongsToMany(Clinic::class);
     }
+    public function consultations()
+    {
+            return $this->hasMany(Consultation::class)->latest();
+    }
 }

@@ -9,32 +9,24 @@ use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
-    public function index(Request $request)
-    {
-        $clinicId = auth()->user()->clinic_id;
-        
-        // 1. Definimos qué día estamos viendo (Por defecto, hoy)
-        $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
+public function index(Request $request)
+{
+    // 1. Obtener la fecha seleccionada o usar 'Hoy' por defecto
+    $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
+    
+    // 2. Obtener las citas del doctor logueado para esa fecha
+    // (Si es Administrador, podrías quitar el filtro de user_id para que vea todas)
+    $appointments = auth()->user()->clinic->appointments()
+        ->whereDate('start_time', $date)
+        ->when(auth()->user()->member_type === 'medico', function($query) {
+            return $query->where('user_id', auth()->id());
+        })
+        ->with('patient')
+        ->orderBy('start_time')
+        ->get();
 
-        // 2. Traemos a todos los MÉDICOS de la clínica para hacer las columnas
-        $doctors = User::where('clinic_id', $clinicId)
-                       ->where('member_type', 'medico')
-                       ->get();
-
-        // 3. Traemos las CITAS de ese día, incluyendo datos del paciente
-        $appointments = Appointment::with(['patient', 'user'])
-                                   ->where('clinic_id', $clinicId)
-                                   ->whereDate('start_time', $date)
-                                   ->get();
-
-        // 4. Generamos los bloques de horas (Ej: de 8:00 AM a 8:00 PM)
-        $hours = [];
-        for ($i = 8; $i <= 20; $i++) {
-            $hours[] = sprintf('%02d:00', $i);
-        }
-
-        return view('appointments.index', compact('date', 'doctors', 'appointments', 'hours'));
-    }
+    return view('appointments.index', compact('appointments', 'date'));
+}
 
     public function create()
     {
