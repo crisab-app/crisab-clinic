@@ -11,7 +11,7 @@
         </div>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8" x-data>
         
         @if (session('success'))
             <div class="mb-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-lg">
@@ -64,12 +64,12 @@
                             <div class="flex items-center justify-between p-1 rounded bg-gray-100 dark:bg-gray-700 border-l-2 border-indigo-500 group" title="{{ $appointment->patient->name }} con {{ $appointment->user->name }}">
                                 
                                 <button type="button" @click.prevent="$dispatch('abrir-editar-modal', {
-                                    action: '{{ route('appointments.update', $appointment->id) }}',
-                                    patient: '{{ $appointment->patient_id }}',
-                                    doctor: '{{ $appointment->user_id }}',
-                                    resource: '{{ $appointment->resource_id }}',
-                                    start: '{{ \Carbon\Carbon::parse($appointment->start_time)->format('Y-m-d\TH:i') }}',
-                                    end: '{{ \Carbon\Carbon::parse($appointment->end_time)->format('Y-m-d\TH:i') }}'
+                                    id: '{{ $appointment->id }}',
+                                    patient_id: '{{ $appointment->patient_id }}',
+                                    user_id: '{{ $appointment->user_id }}',
+                                    resource_id: '{{ $appointment->resource_id }}',
+                                    start_time: '{{ \Carbon\Carbon::parse($appointment->start_time)->format('Y-m-d\TH:i') }}',
+                                    end_time: '{{ \Carbon\Carbon::parse($appointment->end_time)->format('Y-m-d\TH:i') }}'
                                 })" class="text-[10px] text-gray-700 dark:text-gray-300 truncate hover:text-indigo-600 dark:hover:text-indigo-400 text-left w-full cursor-pointer transition-colors">
                                     {{ \Carbon\Carbon::parse($appointment->start_time)->format('H:i') }} - {{ $appointment->patient->name }}
                                 </button>
@@ -151,20 +151,12 @@
     <div x-data="{ 
             showEditModal: false, 
             formAction: '', 
-            formPatient: '', 
-            formDoctor: '', 
-            formResource: '', 
-            formStart: '', 
-            formEnd: '' 
+            formData: { patient_id: '', user_id: '', resource_id: '', start_time: '', end_time: '' } 
          }" 
          @abrir-editar-modal.window="
-            formAction = $event.detail.action;
-            formPatient = $event.detail.patient;
-            formDoctor = $event.detail.doctor;
-            formResource = $event.detail.resource;
-            formStart = $event.detail.start;
-            formEnd = $event.detail.end;
             showEditModal = true; 
+            formAction = '/appointments/' + $event.detail.id; 
+            formData = $event.detail;
          " 
          x-cloak x-show="showEditModal" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -180,7 +172,7 @@
                         <div class="space-y-4">
                             <div>
                                 <x-input-label for="edit_patient_id" value="Paciente" />
-                                <select name="patient_id" x-model="formPatient" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
+                                <select name="patient_id" x-model="formData.patient_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
                                     @foreach($patients as $patient)
                                         <option value="{{ $patient->id }}">{{ $patient->name }}</option>
                                     @endforeach
@@ -188,7 +180,7 @@
                             </div>
                             <div>
                                 <x-input-label for="edit_user_id" value="Médico Asignado" />
-                                <select name="user_id" x-model="formDoctor" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
+                                <select name="user_id" x-model="formData.user_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
                                     @foreach($doctors as $doctor)
                                         <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
                                     @endforeach
@@ -196,7 +188,7 @@
                             </div>
                             <div>
                                 <x-input-label for="edit_resource_id" value="Consultorio / Área" />
-                                <select name="resource_id" x-model="formResource" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
+                                <select name="resource_id" x-model="formData.resource_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
                                     @foreach($resources as $resource)
                                         <option value="{{ $resource->id }}">{{ $resource->name ?? 'Consultorio' }}</option>
                                     @endforeach
@@ -205,11 +197,11 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <x-input-label for="edit_start_time" value="Fecha y Hora de Inicio" />
-                                    <input type="datetime-local" name="start_time" x-model="formStart" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
+                                    <input type="datetime-local" name="start_time" x-model="formData.start_time" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
                                 </div>
                                 <div>
                                     <x-input-label for="edit_end_time" value="Fecha y Hora de Fin" />
-                                    <input type="datetime-local" name="end_time" x-model="formEnd" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
+                                    <input type="datetime-local" name="end_time" x-model="formData.end_time" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md" required>
                                 </div>
                             </div>
                         </div>
