@@ -77,6 +77,9 @@ Route::middleware('auth')->group(function () {
 
     // Generador de Enlaces Mágicos por WhatsApp
     Route::get('whatsapp/onboarding/{patient}', [App\Http\Controllers\ReceptionController::class, 'sendWhatsapp'])->name('reception.whatsapp');
+    // Módulo de Consulta Médica
+    Route::get('consultations/create/{appointment}', [App\Http\Controllers\ConsultationController::class, 'create'])->name('consultations.create');
+    Route::post('consultations/{appointment}', [App\Http\Controllers\ConsultationController::class, 'store'])->name('consultations.store');
 });
 
 // ==========================================
