@@ -57,4 +57,28 @@ public function store(Request $request)
 
         // 3. ¡La pieza faltante! Redirigimos de vuelta a Recepción con un mensaje verde
         return redirect()->route('reception.index')->with('success', '¡Cita agendada exitosamente!');
-    }}
+    }
+    public function update(Request $request, Appointment $appointment)
+    {
+        // 1. Validar los datos nuevos
+        $request->validate([
+            'patient_id' => 'required|exists:patients,id',
+            'user_id' => 'required|exists:users,id',
+            'resource_id' => 'required|exists:clinic_resources,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+        ]);
+
+        // 2. Actualizar la cita
+        $appointment->update([
+            'patient_id' => $request->patient_id,
+            'user_id' => $request->user_id,
+            'resource_id' => $request->resource_id,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+        ]);
+
+        // 3. Regresar a recepción con mensaje de éxito
+        return back()->with('success', '¡Cita reagendada/actualizada correctamente!');
+    }
+    }
