@@ -16,6 +16,7 @@ protected $fillable = [
         'country', // <-- Permitir país
         'timezone', // <-- Permitir zona horaria
         'billing_plan',
+        'logo_path',
         'phone'
     ];
 // Una clínica tiene muchos recursos físicos

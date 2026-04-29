@@ -41,7 +41,8 @@ class ConsultationController extends Controller
         // 3. Redirigir de vuelta a la agenda
         return redirect()->route('appointments.index')->with('success', 'Consulta finalizada y guardada exitosamente.');
     }
-public function prescription(Consultation $consultation)
+
+    public function prescription(Consultation $consultation)
     {
         // Seguridad: Verificar que la consulta pertenezca a la clínica actual
         if ($consultation->clinic_id !== auth()->user()->clinic_id) {
@@ -59,9 +60,9 @@ public function prescription(Consultation $consultation)
         // Generar el PDF enviando todas las variables necesarias
         $pdf = \Pdf::loadView('consultations.prescription_pdf', compact('consultation', 'clinic', 'patient', 'doctor'));
 
-        // Configurar el papel
-        $pdf->setPaper('letter', 'portrait');
-
+        // 'statement' es el tamaño exacto de Media Carta (5.5 x 8.5 pulgadas)
+        $pdf->setPaper('statement', 'portrait');
+        
         // Descargar o mostrar en el navegador
         return $pdf->stream('Receta_' . $patient->name . '_' . $consultation->created_at->format('Ymd') . '.pdf');
     }
