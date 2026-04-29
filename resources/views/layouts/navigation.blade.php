@@ -103,7 +103,9 @@
                             </div>
                         </button>
                     </x-slot>
-
+<div class="text-white bg-red-500 px-2 py-1 text-xs">
+    Mi rol es: {{ auth()->user()->member_type }}
+</div>
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
@@ -190,6 +192,9 @@
                 <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
+            <div class="text-white bg-red-500 px-2 py-1 text-xs">
+    Mi rol es: {{ auth()->user()->member_type }}
+</div>
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
