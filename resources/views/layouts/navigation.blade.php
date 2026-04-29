@@ -25,6 +25,7 @@
                         {{ __('Pacientes') }}
                     </x-nav-link>
 
+                    <!-- Menú Desplegable protegido por Rol de Spatie -->
                     @role('Administrador de Clinica')
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-dropdown align="right" width="48">
@@ -49,12 +50,11 @@
                                 <x-dropdown-link :href="route('catalogs.index')">
                                     {{ __('Especialidades y Catálogos') }}
                                 </x-dropdown-link>
-                                <!-- Solo visible para Administradores -->
-                                @if(auth()->user()->member_type === 'admin')
-                                    <x-dropdown-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
-                                        {{ __('Gestión de Clínicas') }}
-                                    </x-dropdown-link>
-                                @endif
+                                
+                                <!-- Nuevo Acceso: Solo visible para el Administrador gracias al @role superior -->
+                                <x-dropdown-link :href="route('clinics.edit', auth()->user()->clinic_id)" :active="request()->routeIs('clinics.edit')">
+                                    {{ __('Datos de la Clínica') }}
+                                </x-dropdown-link>
                             </x-slot>
                         </x-dropdown>
                     </div>
@@ -62,13 +62,14 @@
 
                     @role('Superadmin')
                     <x-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
-                        {{ __('Clínicas') }}
+                        {{ __('Clínicas (Global)') }}
                     </x-nav-link>
                     @endrole
                 </div>
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Botón Modo Oscuro -->
                 <button x-data="{ isDark: document.documentElement.classList.contains('dark') }" 
                         x-on:click="
                             isDark = !isDark; 
@@ -103,12 +104,10 @@
                             </div>
                         </button>
                     </x-slot>
-<div class="text-white bg-red-500 px-2 py-1 text-xs">
-    Mi rol es: {{ auth()->user()->member_type }}
-</div>
+
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('perfil') }}
+                            {{ __('Perfil') }}
                         </x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -134,6 +133,7 @@
         </div>
     </div>
 
+    <!-- Menú Responsivo (Móvil) -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
@@ -170,19 +170,17 @@
                     <x-responsive-nav-link :href="route('catalogs.index')" :active="request()->routeIs('catalogs.*')">
                         {{ __('Especialidades y Catálogos') }}
                     </x-responsive-nav-link>
-                    @if(auth()->user()->member_type === 'admin')
-                                    <x-responsive-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
-                                        {{ __('Gestión de Clínicas') }}
-                                    </x-responsive-nav-link>
-                    @endif
-
+                    
+                    <x-responsive-nav-link :href="route('clinics.edit', auth()->user()->clinic_id)" :active="request()->routeIs('clinics.edit')">
+                        {{ __('Datos de la Clínica') }}
+                    </x-responsive-nav-link>
                 </div>
             </div>
             @endrole
 
             @role('Superadmin')
             <x-responsive-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
-                {{ __('Clínicas') }}
+                {{ __('Clínicas (Global)') }}
             </x-responsive-nav-link>
             @endrole
         </div>
@@ -191,9 +189,6 @@
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-            <div class="text-white bg-red-500 px-2 py-1 text-xs">
-                Mi rol es: {{ auth()->user()->member_type }}
             </div>
 
             <div class="mt-3 space-y-1">
