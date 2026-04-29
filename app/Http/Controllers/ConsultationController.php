@@ -41,25 +41,28 @@ class ConsultationController extends Controller
         // 3. Redirigir de vuelta a la agenda
         return redirect()->route('appointments.index')->with('success', 'Consulta finalizada y guardada exitosamente.');
     }
-    public function prescription(Consultation $consultation)
+public function prescription(Consultation $consultation)
     {
         // Seguridad: Verificar que la consulta pertenezca a la clínica actual
         if ($consultation->clinic_id !== auth()->user()->clinic_id) {
             abort(403, 'Acceso denegado a esta receta.');
         }
 
-        // Cargar las relaciones necesarias para pintar el PDF
+        // Cargar las relaciones necesarias
         $consultation->load(['patient', 'doctor', 'appointment']);
+        
+        // Extraer las variables para que el PDF las entienda perfectamente
         $clinic = auth()->user()->clinic;
+        $patient = $consultation->patient;
+        $doctor = $consultation->doctor;
 
-        // Generar el PDF usando una vista que crearemos en el siguiente paso
-        $pdf = \Pdf::loadView('consultations.prescription_pdf', compact('consultation', 'clinic'));
+        // Generar el PDF enviando todas las variables necesarias
+        $pdf = \Pdf::loadView('consultations.prescription_pdf', compact('consultation', 'clinic', 'patient', 'doctor'));
 
-        // Configurar el papel (Tamaño Media Carta o A5 es muy común para recetas, pero usaremos Letter por ahora)
+        // Configurar el papel
         $pdf->setPaper('letter', 'portrait');
 
         // Descargar o mostrar en el navegador
-        // Usamos stream() para que se abra en una pestaña nueva listo para imprimir
-        return $pdf->stream('Receta_' . $consultation->patient->name . '_' . $consultation->created_at->format('Ymd') . '.pdf');
+        return $pdf->stream('Receta_' . $patient->name . '_' . $consultation->created_at->format('Ymd') . '.pdf');
     }
 }
