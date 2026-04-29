@@ -80,6 +80,9 @@ Route::middleware('auth')->group(function () {
     // Módulo de Consulta Médica
     Route::get('consultations/create/{appointment}', [App\Http\Controllers\ConsultationController::class, 'create'])->name('consultations.create');
     Route::post('consultations/{appointment}', [App\Http\Controllers\ConsultationController::class, 'store'])->name('consultations.store');
+
+    // Descarga de Receta en PDF
+    Route::get('consultations/{consultation}/prescription', [App\Http\Controllers\ConsultationController::class, 'prescription'])->name('consultations.prescription');
 });
 
 // ==========================================

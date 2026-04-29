@@ -50,9 +50,24 @@
                                 Iniciar Consulta
                             </a>
                         @else
-                            <span class="inline-flex justify-center items-center px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-sm font-bold rounded-xl border border-gray-200 dark:border-gray-700">
-                                ✔ Finalizada
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex justify-center items-center px-3 py-3 bg-gray-100 dark:bg-gray-800 text-gray-500 text-xs font-bold rounded-xl border border-gray-200 dark:border-gray-700">
+                                    ✔ Finalizada
+                                </span>
+                                
+                                <!-- NUEVO BOTÓN DE RECETA -->
+                                <!-- Buscamos la consulta asociada a esta cita para generar el PDF -->
+                                @php
+                                    $consulta = \App\Models\Consultation::where('appointment_id', $app->id)->first();
+                                @endphp
+                                
+                                @if($consulta)
+                                <a href="{{ route('consultations.prescription', $consulta->id) }}" target="_blank" class="inline-flex justify-center items-center px-4 py-3 bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-xl transition shadow-sm hover:shadow">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                    Imprimir Receta
+                                </a>
+                                @endif
+                            </div>
                         @endif
                     </div>
                 </div>
