@@ -49,6 +49,12 @@
                                 <x-dropdown-link :href="route('catalogs.index')">
                                     {{ __('Especialidades y Catálogos') }}
                                 </x-dropdown-link>
+                                <!-- Solo visible para Administradores -->
+                                @if(auth()->user()->member_type === 'admin')
+                                    <x-dropdown-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
+                                        {{ __('Gestión de Clínicas') }}
+                                    </x-dropdown-link>
+                                @endif
                             </x-slot>
                         </x-dropdown>
                     </div>
@@ -162,6 +168,12 @@
                     <x-responsive-nav-link :href="route('catalogs.index')" :active="request()->routeIs('catalogs.*')">
                         {{ __('Especialidades y Catálogos') }}
                     </x-responsive-nav-link>
+                    @if(auth()->user()->member_type === 'admin')
+                                    <x-responsive-nav-link :href="route('clinics.index')" :active="request()->routeIs('clinics.*')">
+                                        {{ __('Gestión de Clínicas') }}
+                                    </x-responsive-nav-link>
+                    @endif
+
                 </div>
             </div>
             @endrole
