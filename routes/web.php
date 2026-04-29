@@ -49,6 +49,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/clinics/{id}', [App\Http\Controllers\ClinicController::class, 'update'])->name('clinics.update');
     Route::delete('/clinics/{id}', [App\Http\Controllers\ClinicController::class, 'destroy'])->name('clinics.destroy');
 
+    // Configuración de la Clínica
+    Route::get('/settings/clinic', [App\Http\Controllers\ClinicController::class, 'edit'])->name('clinic.edit');
+    Route::put('/settings/clinic', [App\Http\Controllers\ClinicController::class, 'update'])->name('clinic.update');
+
     // Rutas de Personal
     Route::get('/staff', [App\Http\Controllers\Clinic\StaffController::class, 'index'])->name('staff.index');
     Route::post('/staff', [App\Http\Controllers\Clinic\StaffController::class, 'store'])->name('staff.store');
