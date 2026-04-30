@@ -13,9 +13,25 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             
+            <!-- Mensaje de Éxito -->
             @if (session('status'))
                 <div class="mb-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-lg">
                     {{ session('status') }}
+                </div>
+            @endif
+
+            <!-- Bloque para mostrar los errores ocultos de Laravel (Movido arriba para mayor visibilidad) -->
+            @if ($errors->any())
+                <div class="mb-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
+                    <div class="font-bold flex items-center mb-2">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        No se pudieron guardar los cambios:
+                    </div>
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -39,14 +55,14 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Útil para recordatorios de cobro o promociones (Soporta formato internacional).</p>
                     </div>
 
-                    <!-- Dirección (NUEVO) -->
+                    <!-- Dirección -->
                     <div>
                         <x-input-label for="address" value="Dirección Completa (Membrete)" />
                         <textarea id="address" name="address" rows="3" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('address', $clinic->address) }}</textarea>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Esta dirección aparecerá automáticamente en el pie de página de las recetas médicas impresas.</p>
                     </div>
 
-                    <!-- Logotipo (NUEVO) -->
+                    <!-- Logotipo -->
                     <div class="p-5 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900/50">
                         <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4">Logotipo Oficial</h3>
                         <div class="flex flex-col sm:flex-row items-center gap-6">
@@ -79,22 +95,32 @@
                         </div>
                     </div>
 
-                    <!-- Plan de Suscripción (Protegido para que solo Superadmin lo vea/edite) -->
-                    @role('Superadmin')
+                    <!-- Plan de Suscripción (Protegido o de Solo Lectura) -->
                     <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <x-input-label for="billing_plan" value="Plan de Suscripción Manual (Solo Superadmin)" class="text-orange-500" />
-                        <select id="billing_plan" name="billing_plan" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md">
-                            <option value="TRIAL" {{ $clinic->billing_plan == 'TRIAL' ? 'selected' : '' }}>Prueba Gratuita (TRIAL)</option>
-                            <option value="BASIC" {{ $clinic->billing_plan == 'BASIC' ? 'selected' : '' }}>Básico (BASIC)</option>
-                            <option value="PRO" {{ $clinic->billing_plan == 'PRO' ? 'selected' : '' }}>Profesional (PRO)</option>
-                            <option value="PREMIUM" {{ $clinic->billing_plan == 'PREMIUM' ? 'selected' : '' }}>Premium (PREMIUM)</option>
-                        </select>
-                        <p class="text-xs text-orange-500 mt-1">Nota: Al integrar Stripe, este campo se actualizará automáticamente con los pagos.</p>
+                        @role('Superadmin')
+                            <x-input-label for="billing_plan" value="Plan de Suscripción Manual (Solo Superadmin)" class="text-orange-500" />
+                            <select id="billing_plan" name="billing_plan" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md">
+                                <option value="TRIAL" {{ strtoupper($clinic->billing_plan) == 'TRIAL' ? 'selected' : '' }}>Prueba Gratuita (TRIAL)</option>
+                                <option value="BASIC" {{ strtoupper($clinic->billing_plan) == 'BASIC' ? 'selected' : '' }}>Básico (BASIC)</option>
+                                <option value="PRO" {{ strtoupper($clinic->billing_plan) == 'PRO' ? 'selected' : '' }}>Profesional (PRO)</option>
+                                <option value="PREMIUM" {{ strtoupper($clinic->billing_plan) == 'PREMIUM' ? 'selected' : '' }}>Premium (PREMIUM)</option>
+                            </select>
+                            <p class="text-xs text-orange-500 mt-1">Nota: Al integrar Stripe, este campo se actualizará automáticamente con los pagos.</p>
+                        @else
+                            <!-- Vista de Solo Lectura para el Dueño de la Clínica -->
+                            <x-input-label value="Plan de Suscripción Actual" />
+                            <div class="mt-2 flex items-center">
+                                <span class="px-4 py-2 inline-flex text-sm leading-5 font-bold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 shadow-sm">
+                                    Plan {{ strtoupper($clinic->billing_plan) }}
+                                </span>
+                                <span class="ml-4 text-xs text-gray-500 dark:text-gray-400">
+                                    Para modificar tu plan de facturación, contacta a soporte.
+                                </span>
+                            </div>
+                            <!-- Input oculto con strtoupper para pasar la validación sin errores -->
+                            <input type="hidden" name="billing_plan" value="{{ strtoupper($clinic->billing_plan) }}">
+                        @endrole
                     </div>
-                    @else
-                        <!-- Si es un admin de clínica, pasamos su plan de forma oculta para no romper la validación al guardar -->
-                        <input type="hidden" name="billing_plan" value="{{ $clinic->billing_plan }}">
-                    @endrole
 
                     <!-- Botón Guardar -->
                     <div class="flex justify-end pt-6">
@@ -102,20 +128,7 @@
                             GUARDAR CAMBIOS
                         </button>
                     </div>
-                    <!-- Bloque para mostrar los errores ocultos de Laravel -->
-                    @if ($errors->any())
-                        <div class="mb-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
-                            <div class="font-bold flex items-center mb-2">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                No se pudieron guardar los cambios:
-                            </div>
-                            <ul class="list-disc list-inside text-sm">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+
                 </form>
 
             </div>
