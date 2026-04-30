@@ -15,6 +15,7 @@ protected $fillable = [
         'visual_id', 
         'country', // <-- Permitir país
         'timezone', // <-- Permitir zona horaria
+        'address',
         'billing_plan',
         'logo_path',
         'phone'
