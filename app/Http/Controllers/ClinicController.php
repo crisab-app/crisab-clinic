@@ -6,7 +6,6 @@ use App\Models\Clinic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage; // <-- Importante para guardar y borrar logotipos
 
 class ClinicController extends Controller
@@ -69,6 +68,7 @@ class ClinicController extends Controller
         $clinic->billing_plan = $request->billing_plan;
 
 // 3. Procesamos y COMPRIMIMOS el logotipo si el usuario subió uno nuevo
+        // 3. Procesamos y COMPRIMIMOS el logotipo si el usuario subió uno nuevo
         if ($request->hasFile('logo')) {
             // Si ya tenía un logo viejo, lo borramos para ahorrar espacio
             if ($clinic->logo_path) {
@@ -76,24 +76,24 @@ class ClinicController extends Controller
             }
 
             $file = $request->file('logo');
-            
-            // Creamos un nombre único y forzamos que sea JPG para mejor compresión
             $filename = 'logos/clinic_' . $clinic->id . '_' . time() . '.jpg';
 
-            // Iniciamos el motor de imágenes
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($file);
+            // Iniciamos el motor de imágenes (Sintaxis compatible con V2)
+            $manager = new ImageManager(['driver' => 'gd']);
+            $image = $manager->make($file);
 
-            // Redimensionamos a un máximo de 400px de ancho (mantiene la proporción de alto automáticamente)
-            $image->scaleDown(width: 400);
+            // Redimensionamos a un máximo de 400px de ancho y protegemos la proporción
+            $image->resize(400, null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize(); // Evita que imágenes pequeñas se estiren y pixelen
+            });
 
-            // Comprimimos la imagen a calidad 75% y la guardamos en la bóveda pública de Laravel
-            Storage::disk('public')->put($filename, (string) $image->toJpeg(75));
+            // Comprimimos a JPG con calidad 75% y guardamos
+            Storage::disk('public')->put($filename, (string) $image->encode('jpg', 75));
 
             // Guardamos la nueva ruta en la base de datos
             $clinic->logo_path = $filename;
         }
-
         // Guardamos los cambios en la base de datos
         $clinic->save();
 
