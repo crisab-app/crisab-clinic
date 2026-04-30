@@ -6,6 +6,7 @@ use App\Models\Clinic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage; // <-- Importante para guardar y borrar logotipos
 
 class ClinicController extends Controller
