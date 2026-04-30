@@ -6,7 +6,6 @@ use App\Models\Clinic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage; // <-- Importante para guardar y borrar logotipos
 
 class ClinicController extends Controller
@@ -30,7 +29,7 @@ class ClinicController extends Controller
         Clinic::create([
             'name' => $request->name,
             'visual_id' => $visualId,
-            'billing_plan' => 'PRO', // <-- Corregido a mayúsculas para coincidir con la validación del update
+            'billing_plan' => 'PRO', // <-- Guardado en mayúsculas por defecto
         ]);
 
         return redirect()->route('clinics.index')->with('status', 'Clínica creada con éxito.');
@@ -51,24 +50,26 @@ class ClinicController extends Controller
 
     public function update(Request $request, $id)
     {
-        // 1. Validamos todos los campos, incluyendo la nueva dirección y logotipo
+        // 1. Validamos todos los campos
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500', 
-            'billing_plan' => 'required|string|in:TRIAL,BASIC,PRO,PREMIUM',
+            // Aceptamos mayúsculas y minúsculas para evitar el error "validation.in"
+            'billing_plan' => 'required|string|in:TRIAL,BASIC,PRO,PREMIUM,trial,basic,pro,premium',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Validación de imagen (Máx 2MB)
         ]);
 
-        $clinic = Clinic::findOrFail($id); // <-- Limpiado
+        $clinic = Clinic::findOrFail($id);
         
         // 2. Actualizamos los campos de texto
         $clinic->name = $request->name;
         $clinic->phone = $request->phone;
         $clinic->address = $request->address;
-        $clinic->billing_plan = $request->billing_plan;
+        
+        // Forzamos el plan a mayúsculas para mantener la base de datos limpia
+        $clinic->billing_plan = strtoupper($request->billing_plan); 
 
-// 3. Procesamos y COMPRIMIMOS el logotipo si el usuario subió uno nuevo
         // 3. Procesamos y COMPRIMIMOS el logotipo si el usuario subió uno nuevo
         if ($request->hasFile('logo')) {
             // Si ya tenía un logo viejo, lo borramos para ahorrar espacio
@@ -79,28 +80,28 @@ class ClinicController extends Controller
             $file = $request->file('logo');
             $filename = 'logos/clinic_' . $clinic->id . '_' . time() . '.jpg';
 
-            // Iniciamos el motor de imágenes (Sintaxis compatible con V2)
-            $manager = new ImageManager(['driver' => 'gd']);
-            $image = $manager->make($file);
+            // Iniciamos el motor de imágenes (Sintaxis infalible de V3)
+            $manager = ImageManager::gd();
+            
+            // Leemos la imagen directamente desde la memoria temporal
+            $image = $manager->read($file->getRealPath());
 
             // Redimensionamos a un máximo de 400px de ancho y protegemos la proporción
-            $image->resize(400, null, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize(); // Evita que imágenes pequeñas se estiren y pixelen
-            });
+            $image->scaleDown(width: 400);
 
             // Comprimimos a JPG con calidad 75% y guardamos
-            Storage::disk('public')->put($filename, (string) $image->encode('jpg', 75));
+            Storage::disk('public')->put($filename, (string) $image->toJpeg(75));
 
             // Guardamos la nueva ruta en la base de datos
             $clinic->logo_path = $filename;
         }
+
         // Guardamos los cambios en la base de datos
         $clinic->save();
 
         // NOTA DE SEGURIDAD: Como este es un controlador de Admin, redirige a la lista general.
-        // Si el que editó fue el dueño de la clínica (no tú), podrías querer redirigirlo a 'dashboard'.
-        return redirect()->route('clinics.index')->with('status', 'Clínica actualizada correctamente.');
+        // Si quieres que el dueño se quede en su misma pantalla al guardar, cámbialo a: return back()->with(...)
+        return back()->with('status', 'Clínica actualizada correctamente.');
     }
 
     public function destroy($id)
@@ -112,7 +113,7 @@ class ClinicController extends Controller
             Storage::disk('public')->delete($clinic->logo_path);
         }
         
-        // Podrías usar SoftDeletes si no quieres borrar los datos permanentemente
+        // Borramos los datos permanentemente
         $clinic->delete();
 
         return redirect()->route('clinics.index')->with('status', 'La clínica ha sido dada de baja.');
