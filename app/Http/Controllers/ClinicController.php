@@ -61,7 +61,7 @@ class ClinicController extends Controller
         $clinic->address = $request->address;
         $clinic->billing_plan = strtoupper($request->billing_plan); 
 
-        // 3. Procesamos y COMPRIMIMOS el logotipo
+        // 3. Procesamos y COMPRIMIMOS el logotipo usando PHP NATIVO (Sin librerías externas)
         if ($request->hasFile('logo')) {
             
             if ($clinic->logo_path) {
@@ -70,18 +70,50 @@ class ClinicController extends Controller
 
             $file = $request->file('logo');
             $filename = 'logos/clinic_' . $clinic->id . '_' . time() . '.jpg';
+            $realPath = $file->getRealPath();
 
-            // Usamos las rutas absolutas de V3 (a prueba de fallos y cachés)
-            $driver = new \Intervention\Image\Drivers\Gd\Driver();
-            $manager = new \Intervention\Image\ImageManager($driver);
+            // Obtenemos las medidas originales de la imagen
+            list($origWidth, $origHeight, $imageType) = getimagesize($realPath);
             
-            // Leemos y redimensionamos
-            $image = $manager->read($file->getRealPath());
-            $image->scaleDown(width: 400);
+            // Calculamos la nueva medida (Máximo 400px de ancho)
+            $maxWidth = 400;
+            if ($origWidth > $maxWidth) {
+                $newWidth = $maxWidth;
+                $newHeight = intval($origHeight * ($maxWidth / $origWidth));
+            } else {
+                $newWidth = $origWidth;
+                $newHeight = $origHeight;
+            }
 
-            // Guardamos el JPG comprimido
-            Storage::disk('public')->put($filename, (string) $image->toJpeg(75));
+            // Creamos un "lienzo" en blanco en la memoria de PHP
+            $imageTmp = imagecreatetruecolor($newWidth, $newHeight);
 
+            // Cargamos la imagen según su formato (PNG o JPG)
+            if ($imageType == IMAGETYPE_PNG) {
+                $source = imagecreatefrompng($realPath);
+                // Rellenar de blanco el fondo por si el PNG tiene transparencias (ya que será JPG)
+                $white = imagecolorallocate($imageTmp, 255, 255, 255);
+                imagefill($imageTmp, 0, 0, $white);
+            } else {
+                $source = imagecreatefromjpeg($realPath);
+            }
+
+            // Copiamos la imagen original al nuevo lienzo ajustando el tamaño
+            imagecopyresampled($imageTmp, $source, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+            // Capturamos el resultado comprimido al 75%
+            ob_start();
+            imagejpeg($imageTmp, null, 75);
+            $imageContent = ob_get_clean();
+
+            // Lo guardamos en el disco de Laravel
+            Storage::disk('public')->put($filename, $imageContent);
+
+            // Limpiamos la memoria del servidor
+            imagedestroy($imageTmp);
+            imagedestroy($source);
+
+            // Guardamos la ruta en la base de datos
             $clinic->logo_path = $filename;
         }
 
