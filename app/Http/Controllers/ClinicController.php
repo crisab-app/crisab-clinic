@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Clinic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver; // <-- El Driver oficial de V3
 use Illuminate\Support\Facades\Storage;
 
 class ClinicController extends Controller
@@ -63,7 +61,9 @@ class ClinicController extends Controller
         $clinic->address = $request->address;
         $clinic->billing_plan = strtoupper($request->billing_plan); 
 
+        // 3. Procesamos y COMPRIMIMOS el logotipo
         if ($request->hasFile('logo')) {
+            
             if ($clinic->logo_path) {
                 Storage::disk('public')->delete($clinic->logo_path);
             }
@@ -71,12 +71,15 @@ class ClinicController extends Controller
             $file = $request->file('logo');
             $filename = 'logos/clinic_' . $clinic->id . '_' . time() . '.jpg';
 
-            // AQUÍ ESTÁ LA MAGIA DE LA VERSIÓN 3: Le pasamos el objeto Driver directamente
-            $manager = new ImageManager(new Driver());
+            // Usamos las rutas absolutas de V3 (a prueba de fallos y cachés)
+            $driver = new \Intervention\Image\Drivers\Gd\Driver();
+            $manager = new \Intervention\Image\ImageManager($driver);
             
+            // Leemos y redimensionamos
             $image = $manager->read($file->getRealPath());
             $image->scaleDown(width: 400);
 
+            // Guardamos el JPG comprimido
             Storage::disk('public')->put($filename, (string) $image->toJpeg(75));
 
             $clinic->logo_path = $filename;
