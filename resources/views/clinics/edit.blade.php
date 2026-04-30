@@ -102,6 +102,20 @@
                             GUARDAR CAMBIOS
                         </button>
                     </div>
+                    <!-- Bloque para mostrar los errores ocultos de Laravel -->
+                    @if ($errors->any())
+                        <div class="mb-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-lg border border-red-200 dark:border-red-800 shadow-sm">
+                            <div class="font-bold flex items-center mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                No se pudieron guardar los cambios:
+                            </div>
+                            <ul class="list-disc list-inside text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </form>
 
             </div>
