@@ -43,7 +43,14 @@
 
                             <div>
                                 <x-input-label for="patient_id" value="Seleccionar Paciente" />
-                                <x-text-input id="patient_id" name="patient_id" type="number" placeholder="ID del paciente" class="mt-1 block w-full" :value="old('patient_id')" required />
+<select id="patient_id" name="patient_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    <option value="" disabled selected>-- Elige un paciente de la lista --</option>
+                                    @foreach($patients as $patient)
+                                        <option value="{{ $patient->id }}" {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
+                                            {{ $patient->name }} (Tel: {{ $patient->phone ?? 'Sin teléfono' }})
+                                        </option>
+                                    @endforeach
+                                </select>
                                 <x-input-error :messages="$errors->get('patient_id')" class="mt-2" />
                             </div>
 
