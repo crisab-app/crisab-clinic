@@ -9,9 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-6 p-4">
-                <form method="GET" action="{{ route('agenda.index') }}" class="flex flex-col sm:flex-row gap-4 items-end" id="agendaFilters">
-                    
-                    <div class="flex-1 w-full">
+            <form method="GET" action="{{ route('appointments.index') }}" class="flex flex-col sm:flex-row gap-4 items-end" id="agendaFilters">                    <div class="flex-1 w-full">
                         <x-input-label for="doctor_id" value="Seleccionar Doctor" />
                         <select name="doctor_id" id="doctor_id" onchange="this.form.submit()" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                             @foreach($doctors as $doctor)
