@@ -14,53 +14,50 @@ class AppointmentController extends Controller
     {
         $user = auth()->user();
 
-        // 1. Obtener la fecha seleccionada del calendario (o usar 'Hoy')
+        // 1. Obtenemos la fecha seleccionada
         $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+        
+        // ¡NUEVO! 2. Obtenemos la preferencia de vista (Por defecto: vertical)
+        $layout = $request->input('layout', 'vertical');
 
-        // 2. Obtener los doctores a mostrar
+        // 3. Obtener los doctores a mostrar
         if ($user->member_type === 'medico') {
-            // El doctor solo se ve a sí mismo en la cuadrícula
             $doctors = User::where('id', $user->id)->get();
         } else {
-            // La secretaria ve a TODOS los doctores de su clínica
             $doctors = User::where('clinic_id', $user->clinic_id)
                            ->where('member_type', 'medico')
                            ->get();
         }
 
-        // 3. Obtener TODAS las citas de esos doctores en esa fecha
+        // 4. Obtener TODAS las citas
         $appointments = Appointment::with('patient')
             ->where('clinic_id', $user->clinic_id)
-            ->whereIn('user_id', $doctors->pluck('id')) // Buscar citas de todos los doctores de la lista
+            ->whereIn('user_id', $doctors->pluck('id'))
             ->whereDate('start_time', $selectedDate)
             ->get();
 
-        // 4. Generar la "Matriz" de cuadrícula (Filas = Horas, Columnas = Doctores)
+        // 5. Generar la "Matriz"
         $timeSlots = [];
         $startOfDay = Carbon::createFromFormat('H:i', '08:00');
         $endOfDay = Carbon::createFromFormat('H:i', '20:00');
 
         while ($startOfDay <= $endOfDay) {
             $timeString = $startOfDay->format('H:i');
-            $timeSlots[$timeString] = []; // Preparamos la fila para esta hora
+            $timeSlots[$timeString] = [];
 
-            // Recorremos cada doctor para ver si tiene cita en esta hora exacta
             foreach ($doctors as $doctor) {
-                // Buscamos si existe una cita en la colección que coincida en doctor y hora
                 $appt = $appointments->first(function ($item) use ($doctor, $timeString) {
                     return $item->user_id === $doctor->id && 
                            Carbon::parse($item->start_time)->format('H:i') === $timeString;
                 });
                 
-                // Guardamos el resultado (la cita o nulo si está libre)
                 $timeSlots[$timeString][$doctor->id] = $appt;
             }
-            
-            // Avanzamos 30 minutos
             $startOfDay->addMinutes(30);
         }
 
-        return view('appointments.index', compact('doctors', 'selectedDate', 'timeSlots'));
+        // Pasamos la variable $layout a la vista
+        return view('appointments.index', compact('doctors', 'selectedDate', 'timeSlots', 'layout'));
     }
 
     public function create(Request $request)
@@ -123,4 +120,5 @@ class AppointmentController extends Controller
 
         return back()->with('success', '¡Cita reagendada/actualizada correctamente!');
     }
+    
 }
