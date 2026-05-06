@@ -43,7 +43,7 @@
 
                             <div>
                                 <x-input-label for="patient_id" value="Seleccionar Paciente" />
-<select id="patient_id" name="patient_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <select id="patient_id" name="patient_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                     <option value="" disabled selected>-- Elige un paciente de la lista --</option>
                                     @foreach($patients as $patient)
                                         <option value="{{ $patient->id }}" {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
@@ -55,8 +55,15 @@
                             </div>
 
                             <div>
-                                <x-input-label for="resource_id" value="Consultorio / Recurso (Opcional)" />
-                                <x-text-input id="resource_id" name="resource_id" type="number" placeholder="ID del consultorio" class="mt-1 block w-full" :value="old('resource_id')" />
+                                <x-input-label for="resource_id" value="Consultorio / Recurso" />
+                                <select id="resource_id" name="resource_id" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    <option value="" disabled selected>-- Elige un consultorio --</option>
+                                    @foreach($resources as $resource)
+                                        <option value="{{ $resource->id }}" {{ old('resource_id') == $resource->id ? 'selected' : '' }}>
+                                            {{ $resource->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 <x-input-error :messages="$errors->get('resource_id')" class="mt-2" />
                             </div>
                         </div>
