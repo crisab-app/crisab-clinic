@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\User;
-use App\Models\Patient; // <-- IMPORTANTE: Importamos el modelo Patient
+use App\Models\Patient;
+use App\Models\ClinicResource; // <-- NUEVO: Importamos el modelo de Recursos/Consultorios
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -17,7 +18,7 @@ class AppointmentController extends Controller
         // 1. Obtenemos la fecha seleccionada
         $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
         
-        // ¡NUEVO! 2. Obtenemos la preferencia de vista (Por defecto: vertical)
+        // 2. Obtenemos la preferencia de vista (Por defecto: vertical)
         $layout = $request->input('layout', 'vertical');
 
         // 3. Obtener los doctores a mostrar
@@ -62,6 +63,7 @@ class AppointmentController extends Controller
 
     public function create(Request $request)
     {
+        $user = auth()->user();
         $doctor_id = $request->input('doctor_id');
         $date = $request->input('date');
         $time = $request->input('time');
@@ -71,10 +73,14 @@ class AppointmentController extends Controller
             $start_time = Carbon::parse("$date $time")->format('Y-m-d\TH:i'); 
         }
 
-        // ¡AQUÍ ESTÁ LA MAGIA! Traemos la lista de todos los pacientes ordenados alfabéticamente
+        // 1. Traemos la lista de todos los pacientes ordenados alfabéticamente
         $patients = Patient::orderBy('name')->get();
 
-        return view('appointments.create', compact('doctor_id', 'start_time', 'patients'));
+        // 2. NUEVO: Traemos los consultorios (recursos) de la clínica actual
+        $resources = ClinicResource::where('clinic_id', $user->clinic_id)->get();
+
+        // Enviamos todo a la vista (incluyendo los resources)
+        return view('appointments.create', compact('doctor_id', 'start_time', 'patients', 'resources'));
     }
 
     public function store(Request $request)
@@ -120,5 +126,4 @@ class AppointmentController extends Controller
 
         return back()->with('success', '¡Cita reagendada/actualizada correctamente!');
     }
-    
 }
