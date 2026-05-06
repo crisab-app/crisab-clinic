@@ -62,4 +62,37 @@ class ReceptionController extends Controller
 
         return view('reception.index', compact('date', 'days', 'doctors', 'patients', 'resources'));
     }
+    public function sendWhatsapp($id)
+    {
+        // 1. Buscamos al paciente en la base de datos
+        $patient = \App\Models\Patient::findOrFail($id);
+
+        // 2. Verificamos que realmente tenga un número guardado
+        if (!$patient->phone) {
+            return back()->with('error', 'El paciente no tiene un número de teléfono registrado.');
+        }
+
+        // 3. Limpiamos el número: quitamos espacios, guiones y el signo de +
+        $phone = preg_replace('/[^0-9]/', '', $patient->phone);
+
+        // (Opcional) Si el número tiene 10 dígitos, le agregamos el código de México (52)
+        if (strlen($phone) == 10) {
+            $phone = '52' . $phone;
+        }
+
+        // 4. Armamos el mensaje de bienvenida
+        // Intentamos obtener el nombre de la clínica del usuario actual
+        $clinicName = auth()->user()->clinic->name ?? 'nuestra clínica';
+        
+        $message = "Hola {$patient->name}, te damos la bienvenida a {$clinicName}. Guardamos este número como tu contacto oficial para confirmación de citas y seguimiento. ¡Quedamos a tus órdenes!";
+
+        // 5. Codificamos el mensaje para que funcione en una URL (cambia los espacios por %20)
+        $encodedMessage = urlencode($message);
+
+        // 6. Generamos el enlace oficial de la API de WhatsApp
+        $whatsappUrl = "https://wa.me/{$phone}?text={$encodedMessage}";
+
+        // 7. Redirigimos al navegador hacia WhatsApp
+        return redirect()->away($whatsappUrl);
+    }
 }

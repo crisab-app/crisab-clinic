@@ -9,31 +9,76 @@ use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
-public function index(Request $request)
+    public function index(Request $request)
     {
-        // 1. Obtener la fecha seleccionada o usar 'Hoy' por defecto
-        $date = $request->date ? \Carbon\Carbon::parse($request->date) : \Carbon\Carbon::today();
-        
-        // 2. Obtener las citas del doctor logueado para esa fecha
-        $appointments = auth()->user()->clinic->appointments()
-            ->whereDate('start_time', $date)
-            ->when(auth()->user()->member_type === 'medico', function($query) {
-                // Si es doctor, solo ve sus propias citas
-                return $query->where('user_id', auth()->id());
-            })
-            ->with('patient')
-            ->orderBy('start_time')
-            ->get();
+        $user = auth()->user();
 
-        return view('appointments.index', compact('appointments', 'date'));
+        // 1. Obtener la lista de doctores de la clínica (Para el selector superior)
+        if ($user->member_type === 'medico') {
+            // Si el que inició sesión es un doctor, solo se ve a sí mismo
+            $doctors = User::where('id', $user->id)->get();
+            $selectedDoctorId = $user->id;
+        } else {
+            // Si es secretaria/admin, ve a todos los doctores de su clínica
+            $doctors = User::where('clinic_id', $user->clinic_id)
+                           ->where('member_type', 'medico')
+                           ->get();
+            
+            // Tomamos el doctor seleccionado en el filtro, o el primero de la lista por defecto
+            $selectedDoctorId = $request->input('doctor_id', $doctors->first()->id ?? null);
+        }
+
+        // 2. Obtener la fecha seleccionada del calendario (o usar 'Hoy' por defecto)
+        $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+
+        // 3. Obtener las citas EXACTAS de ese doctor en esa fecha
+        $appointments = Appointment::with('patient')
+            ->where('clinic_id', $user->clinic_id)
+            ->where('user_id', $selectedDoctorId) // 'user_id' es el doctor
+            ->whereDate('start_time', $selectedDate)
+            ->get()
+            ->keyBy(function($item) {
+                // Convertimos "2026-05-20 08:30:00" a "08:30" para que encaje en nuestra cuadrícula
+                return Carbon::parse($item->start_time)->format('H:i');
+            });
+
+        // 4. Generamos los bloques de media hora (Ej: De 08:00 AM a 08:00 PM)
+        $timeSlots = [];
+        $startOfDay = Carbon::createFromFormat('H:i', '08:00');
+        $endOfDay = Carbon::createFromFormat('H:i', '20:00'); // Cambia este '20:00' si cierran más tarde
+
+        while ($startOfDay <= $endOfDay) {
+            $timeString = $startOfDay->format('H:i');
+            
+            // Verificamos si en este horario exacto ya hay una cita
+            $timeSlots[$timeString] = $appointments->has($timeString) ? $appointments[$timeString] : null;
+            
+            // Avanzamos 30 minutos para el siguiente bloque
+            $startOfDay->addMinutes(30);
+        }
+
+        // 5. Enviamos todo a la vista del calendario
+        return view('appointments.index', compact('doctors', 'selectedDoctorId', 'selectedDate', 'timeSlots'));
     }
-    public function create()
+
+    public function create(Request $request)
     {
-        // Redirigimos al Centro de Mando
-        return redirect()->route('reception.index');
+        // Atrapamos los datos que vienen del clic en el bloque vacío (Ej: 10:30)
+        $doctor_id = $request->input('doctor_id');
+        $date = $request->input('date');
+        $time = $request->input('time');
+
+        // Construimos la fecha y hora de inicio correcta para HTML (Ej: "2026-05-20T10:30")
+        $start_time = null;
+        if ($date && $time) {
+            $start_time = Carbon::parse("$date $time")->format('Y-m-d\TH:i'); 
+        }
+
+        // Retornamos la vista del formulario pre-llenada (necesitarás tener este archivo en resources/views/appointments/create.blade.php)
+        return view('appointments.create', compact('doctor_id', 'start_time'));
     }
 
-public function store(Request $request)
+    public function store(Request $request)
     {
         // 1. Validamos que no nos manden datos basura
         $request->validate([
@@ -45,7 +90,7 @@ public function store(Request $request)
         ]);
 
         // 2. Guardamos la cita conectada a la clínica actual
-        \App\Models\Appointment::create([
+        Appointment::create([
             'clinic_id' => auth()->user()->clinic_id,
             'patient_id' => $request->patient_id,
             'user_id' => $request->user_id,
@@ -55,9 +100,10 @@ public function store(Request $request)
             'status' => 'Programada', // Estado inicial por defecto
         ]);
 
-        // 3. ¡La pieza faltante! Redirigimos de vuelta a Recepción con un mensaje verde
+        // 3. Redirigimos de vuelta a Recepción con un mensaje verde
         return redirect()->route('reception.index')->with('success', '¡Cita agendada exitosamente!');
     }
+
     public function update(Request $request, Appointment $appointment)
     {
         // 1. Validar los datos nuevos
@@ -81,4 +127,4 @@ public function store(Request $request)
         // 3. Regresar a recepción con mensaje de éxito
         return back()->with('success', '¡Cita reagendada/actualizada correctamente!');
     }
-    }
+}
