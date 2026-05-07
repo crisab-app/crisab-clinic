@@ -25,17 +25,23 @@
             </div>
         @endif
 
-        <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-t-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
-            <a href="{{ route('reception.index', ['date' => $date->copy()->subMonth()->toDateString()]) }}" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
-                &larr; Mes Anterior
-            </a>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white capitalize">
-                {{ $date->translatedFormat('F Y') }}
-            </h3>
-            <a href="{{ route('reception.index', ['date' => $date->copy()->addMonth()->toDateString()]) }}" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
-                Mes Siguiente &rarr;
-            </a>
-        </div>
+<div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-t-lg border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <a href="{{ route('reception.index', ['date' => $date->copy()->subMonth()->toDateString()]) }}" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+        &larr; Anterior
+    </a>
+    
+    <div class="relative group cursor-pointer">
+        <h3 id="month-picker" class="text-xl font-bold text-indigo-600 dark:text-indigo-400 capitalize flex items-center hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-1 rounded-md transition-all">
+            {{ $date->translatedFormat('F Y') }}
+            <svg class="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </h3>
+        <input type="text" id="hidden-date-picker" class="absolute inset-0 opacity-0 cursor-pointer">
+    </div>
+
+    <a href="{{ route('reception.index', ['date' => $date->copy()->addMonth()->toDateString()]) }}" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+        Siguiente &rarr;
+    </a>
+</div>
 
         <div class="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-700 shadow-sm">
             @foreach(['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as $day)
@@ -146,5 +152,30 @@
             </div>
         </div>
     </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#hidden-date-picker", {
+            locale: "es",
+            // Configuramos para que sea fácil elegir mes y año
+            dateFormat: "Y-m-d",
+            defaultDate: "{{ $date->format('Y-m-d') }}",
+            disableMobile: true,
+            onChange: function(selectedDates, dateStr, instance) {
+                // Al seleccionar cualquier día de ese mes, recargamos la vista de recepción
+                window.location.href = "{{ route('reception.index') }}?date=" + dateStr;
+            },
+            // Opcional: Si quieres que el calendario se abra justo al dar clic en el texto
+            positionElement: document.getElementById('month-picker')
+        });
+
+        // Hacemos que al dar clic en el H3 también se active el input oculto
+        document.getElementById('month-picker').addEventListener('click', function() {
+            document.getElementById('hidden-date-picker')._flatpickr.open();
+        });
+    });
+</script>
 </x-app-layout>
