@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\ClinicResource;
+use App\Models\Patient;
 
 class Appointment extends Model
 {
@@ -20,24 +23,27 @@ class Appointment extends Model
         'reason'
     ];
 
+    // --- RELACIONES ---
+
     // Relación: La cita le pertenece a un Paciente
     public function patient()
     {
         return $this->belongsTo(Patient::class);
     }
 
-    // Relación: La cita le pertenece a un Médico (User)
-    public function user()
+    // Relación: Para saber quién es el Doctor (apunta a la tabla users usando user_id)
+    public function doctor()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Relación: La cita ocupa un Recurso Físico (Consultorio)
-    // Nota: Asumiendo que tu modelo de recursos se llama ClinicResource
     public function resource()
     {
         return $this->belongsTo(ClinicResource::class, 'resource_id');
     }
+
+    // --- LÓGICA DE NEGOCIO ---
 
     // Función para detectar si el médico o el consultorio ya están ocupados
     public static function isSlotAvailable($resourceId, $userId, $start, $end)
