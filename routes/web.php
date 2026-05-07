@@ -92,6 +92,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/consultations/{appointment}/start', [App\Http\Controllers\ConsultationController::class, 'create'])->name('consultations.create');
     Route::post('/consultations/{appointment}', [App\Http\Controllers\ConsultationController::class, 'store'])->name('consultations.store');
     Route::get('/prescriptions/{appointment}/pdf', [App\Http\Controllers\PrescriptionController::class, 'printPdf'])->name('prescriptions.pdf');
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory/{medication}/add', [InventoryController::class, 'addStock'])->name('inventory.add');
+    Route::post('/inventory/store', [InventoryController::class, 'store'])->name('inventory.store');
 });
 
 // ==========================================
