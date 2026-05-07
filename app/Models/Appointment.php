@@ -61,4 +61,9 @@ class Appointment extends Model
             });
         })->exists();
     }
+    // Relación: Una cita médica genera muchas prescripciones (recetas)
+    public function prescriptions()
+    {
+        return $this->hasMany(Prescription::class);
+    }
 }
