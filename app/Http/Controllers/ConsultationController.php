@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Consultation;
+use App\Models\Medication; // <-- IMPORTANTE: Agregamos el modelo de Medicamentos
+use App\Models\Prescription; // <-- IMPORTANTE: Agregamos el modelo de Recetas
 use Illuminate\Http\Request;
 
 class ConsultationController extends Controller
@@ -17,29 +19,55 @@ class ConsultationController extends Controller
 
         $patient = $appointment->patient;
 
-        return view('consultations.create', compact('appointment', 'patient'));
+        // NUEVO: Traemos el Catálogo de Medicamentos (Vademécum) de esta clínica
+        $medications = Medication::where('clinic_id', auth()->user()->clinic_id)
+                                 ->orderBy('name')
+                                 ->get();
+
+        // Pasamos todo a la vista interactiva
+        return view('consultations.create', compact('appointment', 'patient', 'medications'));
     }
 
     public function store(Request $request, Appointment $appointment)
     {
-        // 1. Guardar la consulta en la base de datos
+        // (Opcional pero recomendado) Validar que los datos de la receta vengan bien
+        $request->validate([
+            'prescriptions' => 'nullable|array',
+            'prescriptions.*.medication_id' => 'required|exists:medications,id',
+            'prescriptions.*.dosage' => 'required|string',
+            'prescriptions.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        // 1. Guardar la consulta (SOAP y Signos Vitales)
         $consultation = Consultation::create([
             'appointment_id' => $appointment->id,
             'patient_id' => $appointment->patient_id,
-            'user_id' => auth()->id(), // El doctor actual
+            'user_id' => auth()->id(), 
             'clinic_id' => auth()->user()->clinic_id,
-            'vitals' => $request->vitals, // Viene como un arreglo desde el formulario
+            'vitals' => $request->vitals, 
             'subjective' => $request->subjective,
             'objective' => $request->objective,
             'assessment' => $request->assessment,
             'plan' => $request->plan,
         ]);
 
-        // 2. Cambiar el estatus de la cita para que desaparezca de "Pendientes"
+        // NUEVO 2. Procesar las recetas dinámicas (si el doctor agregó medicamentos)
+        if ($request->has('prescriptions') && is_array($request->prescriptions)) {
+            foreach ($request->prescriptions as $item) {
+                Prescription::create([
+                    'appointment_id' => $appointment->id,
+                    'medication_id' => $item['medication_id'],
+                    'dosage' => $item['dosage'],
+                    'quantity_prescribed' => $item['quantity']
+                ]);
+            }
+        }
+
+        // 3. Cambiar el estatus de la cita para que desaparezca de "Pendientes"
         $appointment->update(['status' => 'Finalizada']);
 
-        // 3. Redirigir de vuelta a la agenda
-        return redirect()->route('appointments.index')->with('success', 'Consulta finalizada y guardada exitosamente.');
+        // 4. Redirigir de vuelta a la agenda
+        return redirect()->route('appointments.index')->with('success', 'Consulta finalizada y receta guardada exitosamente.');
     }
 
     public function prescription(Consultation $consultation)
@@ -49,21 +77,20 @@ class ConsultationController extends Controller
             abort(403, 'Acceso denegado a esta receta.');
         }
 
-        // Cargar las relaciones necesarias
-        $consultation->load(['patient', 'doctor', 'appointment']);
+        // NUEVO: Cargamos las relaciones, incluyendo las recetas y el detalle de cada medicamento
+        $consultation->load(['patient', 'doctor', 'appointment.prescriptions.medication']);
         
-        // Extraer las variables para que el PDF las entienda perfectamente
+        // Extraer las variables
         $clinic = auth()->user()->clinic;
         $patient = $consultation->patient;
         $doctor = $consultation->doctor;
 
-        // Generar el PDF enviando todas las variables necesarias
+        // Generar el PDF
         $pdf = \Pdf::loadView('consultations.prescription_pdf', compact('consultation', 'clinic', 'patient', 'doctor'));
 
-        // 'statement' es el tamaño exacto de Media Carta (5.5 x 8.5 pulgadas)
+        // Formato Media Carta
         $pdf->setPaper('statement', 'portrait');
         
-        // Descargar o mostrar en el navegador
         return $pdf->stream('Receta_' . $patient->name . '_' . $consultation->created_at->format('Ymd') . '.pdf');
     }
 }

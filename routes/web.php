@@ -87,6 +87,11 @@ Route::middleware('auth')->group(function () {
 
     // Descarga de Receta en PDF
     Route::get('consultations/{consultation}/prescription', [App\Http\Controllers\ConsultationController::class, 'prescription'])->name('consultations.prescription');
+    
+    // Módulo de Consultas y Recetas
+    Route::get('/consultations/{appointment}/start', [App\Http\Controllers\ConsultationController::class, 'create'])->name('consultations.create');
+    Route::post('/consultations/{appointment}', [App\Http\Controllers\ConsultationController::class, 'store'])->name('consultations.store');
+    Route::get('/prescriptions/{appointment}/pdf', [App\Http\Controllers\PrescriptionController::class, 'printPdf'])->name('prescriptions.pdf');
 });
 
 // ==========================================
