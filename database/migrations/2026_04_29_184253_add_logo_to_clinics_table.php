@@ -12,14 +12,20 @@ return new class extends Migration
 public function up()
     {
         Schema::table('clinics', function (Blueprint $table) {
-            $table->string('logo_path')->nullable()->after('name'); // Guardará la ruta de la imagen
+            // Verificamos si la columna NO existe antes de intentar agregarla
+            if (!Schema::hasColumn('clinics', 'logo_path')) {
+                $table->string('logo_path')->nullable()->after('name');
+            }
         });
     }
 
     public function down()
     {
         Schema::table('clinics', function (Blueprint $table) {
-            $table->dropColumn('logo_path');
+            // Verificamos si la columna existe antes de intentar eliminarla
+            if (Schema::hasColumn('clinics', 'logo_path')) {
+                $table->dropColumn('logo_path');
+            }
         });
     }
 };
