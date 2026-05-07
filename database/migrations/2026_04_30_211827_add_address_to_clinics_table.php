@@ -9,11 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-public function up(): void
+public function up()
     {
         Schema::table('clinics', function (Blueprint $table) {
-            // Agregamos la columna 'address' después de 'phone'
-            $table->text('address')->nullable()->after('phone');
+            // Verificamos si la columna NO existe antes de crearla
+            if (!Schema::hasColumn('clinics', 'address')) {
+                $table->text('address')->nullable()->after('phone');
+            }
         });
     }
 
