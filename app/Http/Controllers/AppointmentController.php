@@ -76,6 +76,30 @@ public function index(Request $request)
         // Enviamos todo a la vista (incluyendo los resources)
         return view('appointments.create', compact('doctor_id', 'start_time', 'patients', 'resources'));
     }
+    public function edit($id)
+    {
+        $user = auth()->user();
+        
+        // 1. Buscamos la cita con todas sus relaciones
+        $appointment = Appointment::with(['patient', 'doctor', 'resource'])->findOrFail($id);
+
+        // 2. Seguridad: Evitar que vean citas de otras clínicas
+        if ($appointment->clinic_id !== $user->clinic_id) {
+            abort(403, 'Acceso denegado a esta cita.');
+        }
+
+        // 3. Cargamos los catálogos para los menús desplegables (por si quieren cambiar la cita)
+        $patients = Patient::orderBy('name')->get();
+        $resources = ClinicResource::where('clinic_id', $user->clinic_id)->get();
+        
+        if ($user->member_type === 'medico') {
+            $doctors = User::where('id', $user->id)->get();
+        } else {
+            $doctors = User::where('clinic_id', $user->clinic_id)->where('member_type', 'medico')->get();
+        }
+
+        return view('appointments.edit', compact('appointment', 'patients', 'resources', 'doctors'));
+    }
 
     public function store(Request $request)
     {
