@@ -18,6 +18,14 @@
                     </div>
 
                     <div>
+                        <x-input-label value="Ver Agenda Por" />
+                        <select name="view_by" onchange="this.form.submit()" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="doctors" {{ $viewBy === 'doctors' ? 'selected' : '' }}>Médicos</option>
+                            <option value="resources" {{ $viewBy === 'resources' ? 'selected' : '' }}>Consultorios</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <x-input-label value="Diseño del Tablero" />
                         <div class="mt-1 flex rounded-md shadow-sm">
                             <label class="cursor-pointer">
@@ -34,6 +42,7 @@
                             </label>
                         </div>
                     </div>
+
                 </form>
             </div>
 
@@ -45,21 +54,21 @@
                             <thead>
                                 <tr>
                                     <th class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider sticky left-0 z-20 w-24 border-r dark:border-gray-700">HORA</th>
-                                    @foreach($doctors as $doctor)
+                                    @foreach($headers as $header)
                                         <th class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-center text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700 min-w-[200px]">
-                                            Dr. {{ $doctor->name }}
+                                            {{ $viewBy === 'resources' ? $header->name : 'Dr. ' . $header->name }}
                                         </th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach($timeSlots as $time => $doctorSlots)
+                                @foreach($timeSlots as $time => $slots)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100 sticky left-0 bg-white dark:bg-gray-800 z-10 border-r border-gray-200 dark:border-gray-700">{{ $time }}</td>
-                                        @foreach($doctors as $doctor)
-                                            @php $appointment = $doctorSlots[$doctor->id]; @endphp
+                                        @foreach($headers as $header)
+                                            @php $appointment = $slots[$header->id]; @endphp
                                             <td class="p-2 border-r border-gray-200 dark:border-gray-700 relative align-top h-16">
-                                                @include('appointments.partials.grid-cell')
+                                                @include('appointments.partials.grid-cell', ['header' => $header])
                                             </td>
                                         @endforeach
                                     </tr>
@@ -69,7 +78,9 @@
                         @else
                             <thead>
                                 <tr>
-                                    <th class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider sticky left-0 z-20 border-r border-gray-200 dark:border-gray-700 min-w-[200px]">DOCTOR</th>
+                                    <th class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider sticky left-0 z-20 border-r border-gray-200 dark:border-gray-700 min-w-[200px]">
+                                        {{ $viewBy === 'resources' ? 'CONSULTORIO' : 'DOCTOR' }}
+                                    </th>
                                     @foreach($timeSlots as $time => $slots)
                                         <th class="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 text-center text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700 min-w-[150px]">
                                             {{ $time }}
@@ -78,15 +89,15 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach($doctors as $doctor)
+                                @foreach($headers as $header)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100 sticky left-0 bg-white dark:bg-gray-800 z-10 border-r border-gray-200 dark:border-gray-700">
-                                            Dr. {{ $doctor->name }}
+                                            {{ $viewBy === 'resources' ? $header->name : 'Dr. ' . $header->name }}
                                         </td>
-                                        @foreach($timeSlots as $time => $doctorSlots)
-                                            @php $appointment = $doctorSlots[$doctor->id]; @endphp
+                                        @foreach($timeSlots as $time => $slots)
+                                            @php $appointment = $slots[$header->id]; @endphp
                                             <td class="p-2 border-r border-gray-200 dark:border-gray-700 relative align-top h-20">
-                                                @include('appointments.partials.grid-cell')
+                                                @include('appointments.partials.grid-cell', ['header' => $header])
                                             </td>
                                         @endforeach
                                     </tr>
@@ -105,13 +116,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             flatpickr(".mi-calendario", {
-                locale: "es", // Calendario 100% en español
-                dateFormat: "Y-m-d", // Formato que usa nuestra base de datos
+                locale: "es",
+                dateFormat: "Y-m-d",
                 altInput: true,
-                altFormat: "j F, Y", // Formato bonito que ve la secretaria (Ej: 6 Mayo, 2026)
-                disableMobile: true, // Fuerza el calendario bonito incluso en celulares
+                altFormat: "j F, Y",
+                disableMobile: true,
                 onChange: function(selectedDates, dateStr, instance) {
-                    // Cuando hace clic en un día, recargamos la tabla automáticamente
                     document.getElementById('agendaFilters').submit();
                 }
             });

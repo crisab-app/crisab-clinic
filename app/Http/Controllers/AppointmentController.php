@@ -11,55 +11,49 @@ use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = auth()->user();
+public function index(Request $request)
+{
+    $user = auth()->user();
+    $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+    $layout = $request->input('layout', 'vertical');
+    
+    // NUEVO: ¿Qué queremos ver en las columnas/filas principales?
+    $viewBy = $request->input('view_by', 'doctors'); // opciones: 'doctors' o 'resources'
 
-        // 1. Obtenemos la fecha seleccionada
-        $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
-        
-        // 2. Obtenemos la preferencia de vista (Por defecto: vertical)
-        $layout = $request->input('layout', 'vertical');
-
-        // 3. Obtener los doctores a mostrar
-        if ($user->member_type === 'medico') {
-            $doctors = User::where('id', $user->id)->get();
-        } else {
-            $doctors = User::where('clinic_id', $user->clinic_id)
-                           ->where('member_type', 'medico')
-                           ->get();
-        }
-
-        // 4. Obtener TODAS las citas
-        $appointments = Appointment::with('patient')
-            ->where('clinic_id', $user->clinic_id)
-            ->whereIn('user_id', $doctors->pluck('id'))
-            ->whereDate('start_time', $selectedDate)
-            ->get();
-
-        // 5. Generar la "Matriz"
-        $timeSlots = [];
-        $startOfDay = Carbon::createFromFormat('H:i', '08:00');
-        $endOfDay = Carbon::createFromFormat('H:i', '20:00');
-
-        while ($startOfDay <= $endOfDay) {
-            $timeString = $startOfDay->format('H:i');
-            $timeSlots[$timeString] = [];
-
-            foreach ($doctors as $doctor) {
-                $appt = $appointments->first(function ($item) use ($doctor, $timeString) {
-                    return $item->user_id === $doctor->id && 
-                           Carbon::parse($item->start_time)->format('H:i') === $timeString;
-                });
-                
-                $timeSlots[$timeString][$doctor->id] = $appt;
-            }
-            $startOfDay->addMinutes(30);
-        }
-
-        // Pasamos la variable $layout a la vista
-        return view('appointments.index', compact('doctors', 'selectedDate', 'timeSlots', 'layout'));
+    // Cargamos los encabezados según la elección
+    if ($viewBy === 'resources') {
+        $headers = \App\Models\ClinicResource::where('clinic_id', $user->clinic_id)->get();
+        $idField = 'resource_id';
+    } else {
+        $headers = User::where('clinic_id', $user->clinic_id)->where('member_type', 'medico')->get();
+        $idField = 'user_id';
     }
+
+    $appointments = Appointment::with(['patient', 'doctor', 'resource'])
+        ->where('clinic_id', $user->clinic_id)
+        ->whereDate('start_time', $selectedDate)
+        ->get();
+
+    $timeSlots = [];
+    $startOfDay = Carbon::createFromFormat('H:i', '08:00');
+    $endOfDay = Carbon::createFromFormat('H:i', '20:00');
+
+    while ($startOfDay <= $endOfDay) {
+        $timeString = $startOfDay->format('H:i');
+        $timeSlots[$timeString] = [];
+
+        foreach ($headers as $header) {
+            $appt = $appointments->first(function ($item) use ($header, $timeString, $idField) {
+                return $item->{$idField} == $header->id && 
+                       Carbon::parse($item->start_time)->format('H:i') === $timeString;
+            });
+            $timeSlots[$timeString][$header->id] = $appt;
+        }
+        $startOfDay->addMinutes(30);
+    }
+
+    return view('appointments.index', compact('headers', 'selectedDate', 'timeSlots', 'layout', 'viewBy'));
+}
 
     public function create(Request $request)
     {
