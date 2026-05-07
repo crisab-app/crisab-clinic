@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\ClinicResource; // <-- Agregado para consistencia
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +30,10 @@ class ReceptionController extends Controller
         $startCalendar = $startOfMonth->copy()->startOfWeek(Carbon::MONDAY);
         $endCalendar = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
 
-        // 3. Traer todas las citas de este rango y agruparlas por día (Optimizado)
+        // 3. Traer todas las citas de este rango y agruparlas por día
+        // ¡CORRECCIÓN AQUÍ: Cambiamos 'user' por 'doctor' e incluimos 'resource'!
         $appointments = $clinic->appointments()
-            ->with(['patient', 'user'])
+            ->with(['patient', 'doctor', 'resource'])
             ->whereBetween('start_time', [$startCalendar->startOfDay(), $endCalendar->endOfDay()])
             ->get()
             ->groupBy(function($app) {
@@ -42,8 +44,8 @@ class ReceptionController extends Controller
         $doctors = User::where('clinic_id', $clinic->id)->where('member_type', 'medico')->get();
         $patients = $clinic->patients()->orderBy('name')->get();
         
-        // Usamos DB::table de forma segura por si no tienes la relación definida en el modelo Clinic
-        $resources = DB::table('clinic_resources')->where('clinic_id', $clinic->id)->get(); 
+        // Actualizado para usar el Modelo directamente
+        $resources = ClinicResource::where('clinic_id', $clinic->id)->get(); 
 
         // 5. Construir la cuadrícula de días
         $days = [];
@@ -62,6 +64,7 @@ class ReceptionController extends Controller
 
         return view('reception.index', compact('date', 'days', 'doctors', 'patients', 'resources'));
     }
+
     public function sendWhatsapp($id)
     {
         // 1. Buscamos al paciente en la base de datos
@@ -81,12 +84,11 @@ class ReceptionController extends Controller
         }
 
         // 4. Armamos el mensaje de bienvenida
-        // Intentamos obtener el nombre de la clínica del usuario actual
         $clinicName = auth()->user()->clinic->name ?? 'nuestra clínica';
         
         $message = "Hola {$patient->name}, te damos la bienvenida a {$clinicName}. Guardamos este número como tu contacto oficial para confirmación de citas y seguimiento. ¡Quedamos a tus órdenes!";
 
-        // 5. Codificamos el mensaje para que funcione en una URL (cambia los espacios por %20)
+        // 5. Codificamos el mensaje para que funcione en una URL
         $encodedMessage = urlencode($message);
 
         // 6. Generamos el enlace oficial de la API de WhatsApp
