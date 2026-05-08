@@ -24,7 +24,10 @@
                     <x-nav-link :href="route('patients.index')" :active="request()->routeIs('patients.*')">
                         {{ __('Pacientes') }}
                     </x-nav-link>
-
+                    <x-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">
+                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        {{ __('Almacén') }}
+                    </x-nav-link>
                     <!-- Menú Desplegable protegido por Rol de Spatie -->
                     @role('Administrador de Clinica')
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -50,6 +53,11 @@
                                 <x-dropdown-link :href="route('catalogs.index')">
                                     {{ __('Especialidades y Catálogos') }}
                                 </x-dropdown-link>
+                                @if(auth()->user()->member_type !== 'medico')
+                                    <x-dropdown-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">
+                                        {{ __('Almacén') }}
+                                    </x-dropdown-link>
+                                @endif
                                 
                                 <!-- Nuevo Acceso: Solo visible para el Administrador -->
                                 <x-dropdown-link :href="route('clinics.edit', auth()->user()->clinic_id ?? 0)" :active="request()->routeIs('clinics.edit')">
